@@ -4,7 +4,6 @@ class Abalone:
         self.turnoJogador= 1 #Define se é o turno do jogador 1 ou 2
         self.pecasDerrubadas= {1: 0, 2: 0} #1 se refere ao primeiro jogador e quantas peças ele perdeu. 2 se refere ao segundo jogador e quantas pecas ele perdeu
     def criarTabuleiro(self): #1 e 2 são utilizados para representar os espaços ocupados pelas peças dos jogadores e None é utilizado para representar os espaços não ocupados
-        #Implementar função
         return [  #Baseado em relação a este tabuleiro: https://www.divertivida.com.br/abalone-classic
             [1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1, 1],
