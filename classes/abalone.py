@@ -3,10 +3,19 @@ class Abalone:
         self.tabuleiro = self.criarTabuleiro() #Cria o Tabuleiro
         self.turnoJogador= 1 #Define se é o turno do jogador 1 ou 2
         self.pecasDerrubadas= {1: 0, 2: 0} #1 se refere ao primeiro jogador e quantas peças ele perdeu. 2 se refere ao segundo jogador e quantas pecas ele perdeu
-    def criarTabuleiro(self):
+    def criarTabuleiro(self): #1 e 2 são utilizados para representar os espaços ocupados pelas peças dos jogadores e None é utilizado para representar os espaços não ocupados
         #Implementar função
-
-        return [] #1 e 2 são utilizados para representar os espaços ocupados pelas peças dos jogadores e None é utilizado para representar os espaços não ocupados
+        return [  #Baseado em relação a este tabuleiro: https://www.divertivida.com.br/abalone-classic
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1],
+            [None, None, 1, 1, 1, None, None],
+            [None, None, None, None, None, None, None, None],
+            [None, None, None, None, None, None, None, None, None],
+            [None, None, None, None, None, None, None, None],
+            [None, None, 2, 2, 2, None, None],
+            [2, 2, 2, 2, 2, 2],
+            [2, 2, 2, 2, 2,],
+        ]
 
     def movimentarPecas(self, posicaoJogador, direcao):
         #Implementar função
