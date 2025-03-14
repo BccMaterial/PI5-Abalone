@@ -169,6 +169,11 @@ class Abalone:
 
     def empurrar_oponente(self, pecas: list, direcao: str):
 
+        #sumito: Para poder empurrar uma peça do adversário, deve se assumir uma posição de "sumito"
+        #Para que se possa entrar em sumito, a sua quantidade de esferas deve ser maior do que a do seu oponente
+        #A sua quantidade de esferas para entrar em sumito deve ser 2 ou 3
+        #Exemplo: é necessário que existe duas esferas alinhadas suas para poder empurrar uma peça adversária para tras
+
         if(len(pecas) > 3 or len(pecas) < 2): #Para que o sumito possa ocorrer, é necessário que o jogador tenha 2 ou 3 peças alinhadas
             print("Precisa de 2 ou 3 peças alinhadas")
             return False
@@ -187,11 +192,11 @@ class Abalone:
         pos_jogador = self.get_tabuleiro(pecas[0]) #Encontra a posição atual do jogar
         pos_oponente = prox_pos(pecas[-1]) #Tupla da peça do oponente mais próxima
 
-        if not (0 <= pos_oponente[0] < len(self.tabuleiro) and 0 <= pos_oponente[1] < len(self.tabuleiro[pos_oponente[0]])):
+        if not (0 <= pos_oponente[0] < len(self.tabuleiro) and 0 <= pos_oponente[1] < len(self.tabuleiro[pos_oponente[0]])): #Verifica se a linha do oponente é valida e se o valor da coluna do oponente é menor que o valor da linha do mesmo
             print("Sem peças oponentes nesta direção para empurrar")
             return False
 
-        if self.get_tabuleiro(pos_oponente) == 0 or self.get_tabuleiro(pos_oponente) == pos_jogador:
+        if self.get_tabuleiro(pos_oponente) == 0 or self.get_tabuleiro(pos_oponente) == pos_jogador: #Verifica se existe uma peça para empurrar a frente
             print("Não existe nenhuma peça do oponente a frente para empurrar")
 
     def checar_vitoria(self):
