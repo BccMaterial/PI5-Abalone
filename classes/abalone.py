@@ -167,9 +167,32 @@ class Abalone:
         
         movimentos[direcao.lower()]()
 
-    def empurrar_oponente(self):
-        #Implementar função
-        pass
+    def empurrar_oponente(self, pecas: list, direcao: str):
+
+        if(len(pecas) > 3 or len(pecas) < 2): #Para que o sumito possa ocorrer, é necessário que o jogador tenha 2 ou 3 peças alinhadas
+            print("Precisa de 2 ou 3 peças alinhadas")
+            return False
+
+        def prox_pos(pos): #pos deve ser uma tupla com (linha, coluna)
+            movimentos = {
+                "e": (pos[0], pos[1] - 1), #Continua na linha, volta uma coluna
+                "d": (pos[0], pos[1] +1), #Continua na mesma linha, anda uma coluna
+                "ce": (pos[0] - 1, pos[1] -1), #Diminui uma linha, volta uma coluna
+                "cd": (pos[0] - 1, pos[1] + 1), #Diminui uma linha, anda uma coluna
+                "be": (pos[0] + 1, pos[1] - 1), #Aumenta uma linha, volta uma coluna
+                "bd": (pos[0] + 1, pos[1] + 1) #Aumenta uma linha, anda uma coluna
+            }
+            return movimentos[direcao] #Retorna uma posição a partir da posição passada
+
+        pos_jogador = self.get_tabuleiro(pecas[0]) #Encontra a posição atual do jogar
+        pos_oponente = prox_pos(pecas[-1]) #Tupla da peça do oponente mais próxima
+
+        if not (0 <= pos_oponente[0] < len(self.tabuleiro) and 0 <= pos_oponente[1] < len(self.tabuleiro[pos_oponente[0]])):
+            print("Sem peças oponentes nesta direção para empurrar")
+            return False
+
+        if self.get_tabuleiro(pos_oponente) == 0 or self.get_tabuleiro(pos_oponente) == pos_jogador:
+            print("Não existe nenhuma peça do oponente a frente para empurrar")
 
     def checar_vitoria(self):
         return self.pecas_derrubadas[1] >= 6 or self.pecas_derrubadas[2]>=6
