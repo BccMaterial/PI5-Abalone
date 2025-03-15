@@ -135,6 +135,7 @@ class Abalone:
             print("Não existe peça válida para ser empurrada nesta direção.")
             return False
 
+        primeira_peca_adversaria = pos_adversario
         # Contagem da quantidade de peças alinhadas do adversário na direção do empurrão:
         while pos_adversario is not None and self.get_tabuleiro(pos_adversario) == adversario: #Verifica a próxima posição do adversário existe e se ela pertence ao mesmo
             pecas_alinhadas_adversario += 1
@@ -149,7 +150,7 @@ class Abalone:
             return False
 
         if pos_adversario is None:
-            ultima_peca_adversaria = self.calcular_pos(pecas[-1], direcao) #Pega a primeira peça alinhada adversária
+            ultima_peca_adversaria = primeira_peca_adversaria #Pega a primeira peça alinhada adversária
             for i in range(pecas_alinhadas_adversario -1): #Percorre todas as peças até a última
                 ultima_peca_adversaria = self.calcular_pos(ultima_peca_adversaria, direcao)
 
@@ -163,12 +164,12 @@ class Abalone:
 
         pos_adversario = self.calcular_pos(pecas[-1], direcao) # Reseta pos_adversario para a primeira posição
 
-        for i in range(pecas_alinhadas_adversario): #Move todas as peças adversárias para a posição especificada
+        for i in range(pecas_alinhadas_adversario): # Move todas as peças adversárias para a posição especificada
             nova_pos = self.calcular_pos(pos_adversario, direcao)
             self.movimentar_peca(pos_adversario, direcao)
             pos_adversario = nova_pos # Atualiza para a próxima iteração do loop
 
-        for peca in pecas_invertidas:
+        for peca in pecas_invertidas: # Inverte a lista peca para começar movimentando os últimos elementos
             self.movimentar_peca(peca, direcao)
 
         print(f"Foi empurrada uma peça do jogador {adversario}")
