@@ -107,30 +107,49 @@ class Abalone:
         return proxima_pos
 
     def empurrar_oponente(self, pecas: list, direcao: str):
-
         # Sumito: Para poder empurrar uma peça do adversário, deve se assumir uma posição de "sumito"
         # Para que se possa entrar em sumito, a sua quantidade de esferas deve ser maior do que a do seu oponente
         # A sua quantidade de esferas para entrar em sumito deve ser 2 ou 3
         # Exemplo: é necessário que existe duas esferas alinhadas suas para poder empurrar uma peça adversária para tras
-
         # Para que o sumito possa ocorrer, é necessário que o jogador tenha 2 ou 3 peças alinhadas
-        if(len(pecas) >= 3 and len(pecas) <= 2): 
-            print("Precisa de 2 ou 3 peças alinhadas")
+
+        if len(pecas) not in [2, 3]: #Garante que o tamanho de peças alinhadas sempre seja 2 ou 3
+            print("Precisa de 2 ou 3 peças alinhadas para que seja possível empurrar")
             return False
 
-        # Encontra a posição atual do jogador
-        pos_jogador = self.get_tabuleiro(pecas[0]) 
+        pos_adversario = self.calcular_pos(pecas[-1], direcao) # Tupla da peça do oponente mais próxima
+        prox_pos_adversario = self.calcular_pos(pos_adversario, direcao)  #Posição em que as peças do advesário serão empurradas
 
-        # Tupla da peça do oponente mais próxima
-        pos_oponente = self.calcular_pos(pecas[-1], direcao)
+        atual_jogador = self.turno_jogador
+        adversario = 3 - atual_jogador  # Determina o adversário a partir do jogador atual. Exemplo: Se atual_jogador = 2, adversário = 3 - 2 = 1
 
-        if not (0 <= pos_oponente[0] < len(self.tabuleiro) and 0 <= pos_oponente[1] < len(self.tabuleiro[pos_oponente[0]])): #Verifica se a linha do oponente é valida e se o valor da coluna do oponente é menor que o valor da linha do mesmo
-            print("Sem peças oponentes nesta direção para empurrar")
+        if pos_adversario is None: # Verifica se existe uma peça adversária para ser empurrada
+            print("Não existe peça para ser empurrada")
             return False
 
-        # Verifica se existe uma peça para empurrar a frente
-        if self.get_tabuleiro(pos_oponente) == 0 or self.get_tabuleiro(pos_oponente) == pos_jogador: 
-            print("Não existe nenhuma peça do oponente a frente para empurrar")
+        if self.get_tabuleiro(pos_adversario) != adversario: # Utiliza self.get_tabuleiro() para verificar se a variável local é igual ao valor retornado por self.get_tabuleiro()
+            print("Não existe nenhuma peça adversária na posição utilizada")
+            return False
+
+        if prox_pos_adversario is None: # Se não existir uma próxima posição para o adversário, ele é empurrado para fora do tabuleiro
+            print(f"O jogador {adversario} teve uma peça derrubada")
+            self.retirar_peca(pos_adversario)
+            self.pecas_derrubadas[adversario] += 1 # Altera o dicionário a partir da key adversário
+            return True
+
+        if self.get_tabuleiro(prox_pos_adversario) != 0: # Verifica se tem um espaço vazio para empurrar a peça adversária
+            print("Sem espaço para empurrar a peça adversária")
+            return False
+
+        #Movimentação das peças:
+
+        self.movimentar_peca(pos_adversario, direcao)
+        pecas_invertidas = reversed(pecas) #É necessário inverter a lista pois devemos começar movimentando os últimos elementos primeiro
+
+        for peca in pecas_invertidas: # Movimenta as peças do jogador para frente
+            self.movimentar_peca(peca, direcao)
+
+        print(f"Foi empurrada uma peça do jogador {adversario}")
 
     def testar_objetivo(self):
         return self.pecas_derrubadas[1] >= 6 or self.pecas_derrubadas[2] >= 6
@@ -138,7 +157,7 @@ class Abalone:
     def imprimir_tabuleiro(self):
         tamanho_maximo = len(max(self.tabuleiro, key=len))
         str_final = ""
-        str_final += f" \t{" ".join(str(i) for i in range(tamanho_maximo))}\n"
+        str_final += f" \t{' '.join(str(i) for i in range(tamanho_maximo))}\n"
         str_final += "\n"
         for i, linha in enumerate(self.tabuleiro):
             quantidade_espaços = tamanho_maximo - len(linha)
