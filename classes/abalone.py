@@ -1,3 +1,5 @@
+import re
+
 class Abalone:
     def __init__(self):
         self.tabuleiro = self.criar_tabuleiro()
@@ -155,6 +157,7 @@ class Abalone:
             print("Instruções")
             print("----------------------------------")
             print("- Insira a coordenada da peça que você deseja mover -> \"NLinha, NColuna\"")
+            print("- Você pode contar as linhas a partir do 0")
             print("- Caso queira sair, digite q")
             print(f"Turno do jogador {self.turno_jogador}")
 
@@ -164,6 +167,9 @@ class Abalone:
                 if ultimo_input == "q":
                     return
 
+                if not re.match(r"\d,\s\d", ultimo_input):
+                    print("Formato inválido. Por favor, digite no formato \"NLinha, NColuna\"")
+                    continue
                 pos_inserida = tuple([int(x) for x in ultimo_input.split(", ")])
 
                 if self.get_tabuleiro(pos_inserida) != self.turno_jogador:
@@ -179,12 +185,20 @@ class Abalone:
             print("cd -> diaconal cima direita")
             print("be -> diagonal baixo esquerda")
             print("bd -> diagonal baixo direita")
-            ultimo_input = input("Agora, digite a direção: ")
+            direcao_valida = False
+            while not direcao_valida:
+                ultimo_input = input("Agora, digite a direção: ")
+                direcoes_possiveis = ["e", "d", "ce", "cd", "be", "bd"]
+                
+                if len([x for x in direcoes_possiveis if x == ultimo_input]) < 1:
+                    print("Direção inválida! Por favor, digite uma direção válida.")
+                    continue
 
-            if ultimo_input == "q":
-                break
+                if ultimo_input == "q":
+                    return
 
-            direcao = ultimo_input
+                direcao = ultimo_input
+                direcao_valida = True
 
             self.movimentar_peca(pos_inserida, direcao)
 
