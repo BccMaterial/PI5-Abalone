@@ -52,7 +52,6 @@ class Abalone:
         Observações:
         - peca_pos é formada por: (linha, coluna)
         """        
-
         pos_atual = peca_pos
         proxima_pos = self.calcular_pos(pos_atual, direcao.lower())
         
@@ -65,17 +64,14 @@ class Abalone:
 
     def posicao_valida(self, pos: tuple):
         max_linha = len(self.tabuleiro) - 1
-        # Se -1 -1 -1 0 0 2 2 0 0
-        # Pos -> 3-8
         linha_escolhida = self.tabuleiro[pos[0]]
         max_coluna = len([x for x in linha_escolhida]) - 1
-        min_coluna = len([x for x in linha_escolhida if x == -1]) + 1
         valor_pos = self.get_tabuleiro(pos)
         return \
             valor_pos == 0 and \
             pos[0] <= max_linha and \
             pos[1] <= max_coluna and \
-            pos[1] >= min_coluna
+            pos[1] >= 0
 
     def calcular_pos(self, pos: tuple, direcao: str):
         """
@@ -88,15 +84,25 @@ class Abalone:
             "e": (pos[0], pos[1] - 1), # Continua na linha, volta uma coluna
             "d": (pos[0], pos[1] + 1), # Continua na mesma linha, anda uma coluna
             "ce": (pos[0] - 1, pos[1] - 1), # Diminui uma linha, volta uma coluna
-            "cd": (pos[0] - 1, pos[1] + 1), # Diminui uma linha, anda uma coluna
+            "cd": (pos[0] - 1, pos[1]), # Diminui uma linha, anda uma coluna
             "be": (pos[0] + 1, pos[1] - 1), # Aumenta uma linha, volta uma coluna
-            "bd": (pos[0] + 1, pos[1] + 1) # Aumenta uma linha, anda uma coluna
+            "bd": (pos[0] + 1, pos[1]) # Aumenta uma linha, anda uma coluna
         }
-        
-        if not self.posicao_valida(movimentos[direcao]):
+
+        linha_atual_len = len(self.tabuleiro[pos[0]])
+        proxima_pos = movimentos[direcao]
+        prox_linha = proxima_pos[0]
+        prox_linha_len = len(self.tabuleiro[prox_linha])
+        linha_atual_len = len(self.tabuleiro[pos[0]])
+        diff_len = linha_atual_len - prox_linha_len
+        if diff_len >= 1:
+            diff_len -= 1
+        proxima_pos = (proxima_pos[0], proxima_pos[1] - diff_len)
+
+        if not self.posicao_valida(proxima_pos):
             return None
 
-        return movimentos[direcao]
+        return proxima_pos
 
     def empurrar_oponente(self, pecas: list, direcao: str):
 
