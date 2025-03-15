@@ -148,6 +148,17 @@ class Abalone:
             str_final += "\n"
         print(str_final)
 
+    def retirar_peca(self, pos: tuple):
+        """
+        Summary
+            Dada uma posição, retira a peça
+        Returns
+            Retorna o valor que foi retirado
+        """
+        valor_retirado = self.get_tabuleiro(pos)
+        self.set_tabuleiro(pos, 0)
+        return valor_retirado
+
     def jogar(self):
         # O usuário vai inserir as coordenadas da peça. ("Linha, Coluna") Ex: 0, 3
         # Temos que pegar a diferença entre a lista com maior tamanho e a lista que ele escolheu
