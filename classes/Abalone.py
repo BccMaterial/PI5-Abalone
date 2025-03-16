@@ -1,4 +1,6 @@
-import re
+import re, random
+from .no import No
+from copy import deepcopy
 
 class Abalone:
     def __init__(self):
@@ -39,6 +41,25 @@ class Abalone:
             [2, 2, 2, 2, 2, 2],
             [2, 2, 2, 2, 2,],
         ]
+
+    def gerar_sucessores(self, no: No):
+        estado = no.estado
+        possiveis_direcoes = ["e", "d", "ce", "cd", "be", "bd"]
+        nos_sucessores = []
+
+        random.shuffle(possiveis_direcoes)
+        for i, linha in enumerate(self.tabuleiro):
+            for j, coluna in linha:
+                if coluna == 0:
+                    continue
+                for direcao in possiveis_direcoes:
+                    tupla = (i, j)
+                    self.movimentar_peca(tupla, direcao)
+
+                    if estado != self.tabuleiro:
+                        nos_sucessores.append(No(self.tabuleiro, no, f"{tupla} {direcao}"))
+
+        return nos_sucessores
 
     # Get e set compatível com tuplas
     def get_tabuleiro(self, pos: tuple):
