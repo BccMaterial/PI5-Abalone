@@ -65,15 +65,16 @@ class Abalone:
         self.set_tabuleiro(pos_atual, 0)
 
     def posicao_valida(self, pos: tuple):
-        max_linha = len(self.tabuleiro) - 1
-        linha_escolhida = self.tabuleiro[pos[0]]
-        max_coluna = len([x for x in linha_escolhida]) - 1
-        valor_pos = self.get_tabuleiro(pos)
-        return \
-            valor_pos == 0 and \
-            pos[0] <= max_linha and \
-            pos[1] <= max_coluna and \
-            pos[1] >= 0
+        linha = pos[0]
+        coluna = pos[1]
+
+        if linha < 0 or linha >= len(self.tabuleiro):
+            return False
+
+        if coluna < 0 or coluna >= len(self.tabuleiro[linha]):
+            return False
+
+        return True
 
     def calcular_pos(self, pos: tuple, direcao: str):
         """
@@ -91,7 +92,6 @@ class Abalone:
             "bd": (pos[0] + 1, pos[1]) # Aumenta uma linha, anda uma coluna
         }
 
-        linha_atual_len = len(self.tabuleiro[pos[0]])
         proxima_pos = movimentos[direcao]
         prox_linha = proxima_pos[0]
         prox_linha_len = len(self.tabuleiro[prox_linha])
@@ -114,7 +114,6 @@ class Abalone:
         # Para que o sumito possa ocorrer, é necessário que o jogador tenha 2 ou 3 peças alinhadas
 
         pos_adversario = self.calcular_pos(pecas[-1], direcao) # Tupla da peça do oponente mais próxima
-        prox_pos_adversario = self.calcular_pos(pos_adversario, direcao) # Posição em que as peças do advesário serão empurradas
 
         atual_jogador = self.turno_jogador
         adversario = 3 - atual_jogador # Determina o adversário a partir do jogador atual. Exemplo: Se atual_jogador = 2, adversário = 3 - 2 = 1
