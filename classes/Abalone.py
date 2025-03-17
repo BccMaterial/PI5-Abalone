@@ -119,6 +119,7 @@ class Abalone:
         j1_primeiro_indice = proximas_posicoes_valores.index(1) if 1 in proximas_posicoes_valores else None
         j2_primeiro_indice = proximas_posicoes_valores.index(2) if 2 in proximas_posicoes_valores else None
 
+        # Contagem de peças seguidas
         for posicao in proximas_posicoes:
             if self.get_tabuleiro(posicao) != 1:
                 continue
@@ -230,73 +231,6 @@ class Abalone:
             return None
 
         return proxima_pos
-
-    def empurrar_oponente(self, pecas: list, direcao: str):
-        # Sumito: Para poder empurrar uma peça do adversário, deve se assumir uma posição de "sumito"
-        # Para que se possa entrar em sumito, a sua quantidade de esferas deve ser maior do que a do seu oponente
-        # A sua quantidade de esferas para entrar em sumito deve ser 2 ou 3
-        # Exemplo: é necessário que existe duas esferas alinhadas suas para poder empurrar uma peça adversária para tras
-        # Para que o sumito possa ocorrer, é necessário que o jogador tenha 2 ou 3 peças alinhadas
-
-        pos_adversario = self.calcular_pos(pecas[-1], direcao) # Tupla da peça do oponente mais próxima
-
-        atual_jogador = self.turno_jogador
-        adversario = 3 - atual_jogador # Determina o adversário a partir do jogador atual. Exemplo: Se atual_jogador = 2, adversário = 3 - 2 = 1
-
-        pecas_alinhadas_adversario = 0
-        pecas_invertidas = reversed(pecas)
-
-        if len(pecas) not in [2, 3]: # Garante que o tamanho de peças alinhadas sempre seja 2 ou 3
-            print("Precisa de 2 ou 3 peças alinhadas para que seja possível empurrar.")
-            return False
-
-        for peca in pecas: #Verifica se as peças que foram passadas pertencem ao jogador atual
-            if self.get_tabuleiro(peca) != atual_jogador:
-                print("Todas as peças passadas devem pertencer ao jogador.")
-                return False
-
-        if pos_adversario is None or self.get_tabuleiro(pos_adversario) != adversario: # Verifica se existe uma peça adversária para ser empurrada e se a peça é do adevesário
-            print("Não existe peça válida para ser empurrada nesta direção.")
-            return False
-
-        primeira_peca_adversaria = pos_adversario
-        # Contagem da quantidade de peças alinhadas do adversário na direção do empurrão:
-        while pos_adversario is not None and self.get_tabuleiro(pos_adversario) == adversario: #Verifica a próxima posição do adversário existe e se ela pertence ao mesmo
-            pecas_alinhadas_adversario += 1
-            pos_adversario = self.calcular_pos(pos_adversario, direcao) #Altera a posição adversária para ser a próxima posição
-
-        if pecas_alinhadas_adversario == 0:
-            print("Sem peças alinhadas para empurrar.")
-            return False
-
-        if len(pecas) <= pecas_alinhadas_adversario:
-            print("O número de peças do jogador é menor do que o número de peças do adversário.")
-            return False
-
-        if pos_adversario is None:
-            ultima_peca_adversaria = primeira_peca_adversaria #Pega a primeira peça alinhada adversária
-            for i in range(pecas_alinhadas_adversario -1): #Percorre todas as peças até a última
-                ultima_peca_adversaria = self.calcular_pos(ultima_peca_adversaria, direcao)
-
-            print(f"O jogador {adversario} teve uma peça derrubada")
-
-            self.retirar_peca(ultima_peca_adversaria)
-            self.pecas_derrubadas[adversario] += 1
-        elif self.get_tabuleiro(pos_adversario) != 0:
-            print("Não existe espaço disponível para empurrar a peça")
-            return False
-
-        pos_adversario = self.calcular_pos(pecas[-1], direcao) # Reseta pos_adversario para a primeira posição
-
-        for i in range(pecas_alinhadas_adversario): # Move todas as peças adversárias para a posição especificada
-            nova_pos = self.calcular_pos(pos_adversario, direcao)
-            self.movimentar_peca(pos_adversario, direcao)
-            pos_adversario = nova_pos # Atualiza para a próxima iteração do loop
-
-        for peca in pecas_invertidas: # Inverte a lista peca para começar movimentando os últimos elementos
-            self.movimentar_peca(peca, direcao)
-
-        print(f"Foi empurrada uma peça do jogador {adversario}")
 
     def testar_objetivo(self):
         return self.pecas_derrubadas[1] >= 6 or self.pecas_derrubadas[2] >= 6
