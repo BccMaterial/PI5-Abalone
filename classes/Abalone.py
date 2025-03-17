@@ -70,12 +70,66 @@ class Abalone:
 
     def funcao_utilidade(self, pos: tuple):
         direcoes = ["e", "d", "ce", "cd", "be", "bd"]
+        pecas_direcoes = dict()
+        pos_valor = self.get_tabuleiro(pos)
+
+        for direcao in direcoes:
+            pecas_direcoes[direcao] = list()
+            proximo_valor = -1
+            proxima_pos = pos
+            # Itera nas casas até achar 0 ou até a borda
+            while proximo_valor != 0 and proximo_valor != None:
+                proxima_pos = self.calcular_pos(proxima_pos, direcao)
+                proximo_valor = self.get_tabuleiro(proxima_pos)
+                if proximo_valor is not None:
+                    pecas_direcoes[direcao].append(proximo_valor)
+
+        # Se em qualquer direção pode ser empurrado, retorna 1.
+        # Se em qualquer direção pode empurrar, retorna 0
+        for direcao in direcoes:
+            lista_valores = pecas_direcoes[direcao]
+
+            if 0 in lista_valores:
+                continue
+
+            if self.quem_pode_empurrar([pos_valor, *lista_valores]) == pos_valor:
+                return 0
+            else:
+                return 1
+
+        # Caso não possa empurrar ou ser empurrado, calcula o coef_utilidade até o centro
         posicoes_ao_redor = [self.calcular_pos(pos, x) for x in direcoes]
         posicoes_ao_redor_valores = [self.get_tabuleiro(pos) for pos in posicoes_ao_redor]
         qtd_pecas_ao_redor = len([x for x in posicoes_ao_redor_valores if x != 0])
         distancia_centro = self.calc_distancia_centro(pos)
         coef_utilidade = qtd_pecas_ao_redor/(distancia_centro+1)
         return coef_utilidade
+
+    def quem_pode_empurrar(self, valores):
+        """
+        Dado um array de valores de 1 e 2, verifica quem pode empurrar naquela situação
+
+        0 -> nenhuma peça pode ser empurrada
+        1 -> jogador 1 pode empurrar
+        2 -> jogador 2 pode empurrar
+        """
+        qtd_pecas_j1 = len([x for x in valores if x == 1])
+        qtd_pecas_j2 = len([x for x in valores if x == 2])
+        
+        if qtd_pecas_j1 == qtd_pecas_j2 or 0 in valores:
+            return 0
+
+        if qtd_pecas_j1 == 0 or qtd_pecas_j2 == 2:
+            return 0
+
+        qtd_pecas_j1_primeiro_indice = valores.index(1)
+        qtd_pecas_j2_primeiro_indice = valores.index(2)
+        
+        if qtd_pecas_j1 > qtd_pecas_j2 and qtd_pecas_j1_primeiro_indice < qtd_pecas_j2_primeiro_indice:
+            return 1
+        else:
+            return 2
+
 
     # Get e set compatível com tuplas
     def get_tabuleiro(self, pos: tuple):

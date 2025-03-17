@@ -2,8 +2,12 @@ from classes import Abalone
 
 if __name__ == "__main__":
     jogo = Abalone() # Cria um jogo
+    jogo.movimentar_peca((0, 1), "bd")
+    jogo.movimentar_peca((1, 2), "bd")
+    jogo.movimentar_peca((2, 3), "bd")
+    jogo.movimentar_peca((3, 4), "bd")
     jogo.imprimir_tabuleiro()
-    jogo.funcao_utilidade((2, 3))
+    print(jogo.funcao_utilidade((4, 5)))
     # jogo.movimentar_peca((8, 2), "ce")
     # jogo.movimentar_peca((7, 2), "ce")
     # jogo.movimentar_peca((6, 4), "e")
