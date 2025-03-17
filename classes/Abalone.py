@@ -63,6 +63,8 @@ class Abalone:
 
     # Get e set compatível com tuplas
     def get_tabuleiro(self, pos: tuple):
+        if pos is None:
+            return None
         linha, coluna = pos
         return self.tabuleiro[linha][coluna]
 
@@ -76,14 +78,115 @@ class Abalone:
         - peca_pos é formada por: (linha, coluna)
         """        
         pos_atual = peca_pos
-        proxima_pos = self.calcular_pos(pos_atual, direcao.lower())
-        
+        pos_atual_valor = self.get_tabuleiro(pos_atual)
+        proximas_posicoes = []
+        proxima_pos = self.calcular_pos(pos_atual, direcao)
+
         if proxima_pos is None:
             # print("Posição selecionada inválida!")
             return
 
-        self.set_tabuleiro(proxima_pos, self.get_tabuleiro(pos_atual))
-        self.set_tabuleiro(pos_atual, 0)
+        it_proxima_pos = pos_atual
+
+        # Itera até achar um 0 ou até a última posição da direção
+        while it_proxima_pos is not None:
+            it_proxima_pos = self.calcular_pos(it_proxima_pos, direcao)
+            if self.get_tabuleiro(it_proxima_pos) is None:
+                break
+
+            if self.get_tabuleiro(it_proxima_pos) == 0:
+                proximas_posicoes.append(it_proxima_pos)
+                break
+
+            if it_proxima_pos is not None:
+                proximas_posicoes.append(it_proxima_pos)
+
+
+        # A primeira posição é 0
+        if len(proximas_posicoes) == 1:
+            self.set_tabuleiro(proxima_pos, self.get_tabuleiro(pos_atual))
+            self.set_tabuleiro(pos_atual, 0)
+            return 0
+
+        # Handling de quando a primeira posição não é 0
+        proximas_posicoes_valores = [self.get_tabuleiro(x) for x in proximas_posicoes]
+
+        # Peças seguidas de cada jogador
+        j1_pecas_seguidas = 0
+        j2_pecas_seguidas = 0
+
+        # Posição da primeira peça de cada jogador na direção
+        j1_primeiro_indice = proximas_posicoes_valores.index(1) if 1 in proximas_posicoes_valores else None
+        j2_primeiro_indice = proximas_posicoes_valores.index(2) if 2 in proximas_posicoes_valores else None
+
+        for posicao in proximas_posicoes:
+            if self.get_tabuleiro(posicao) != 1:
+                continue
+            j1_pecas_seguidas += 1
+
+        for posicao in proximas_posicoes:
+            if self.get_tabuleiro(posicao) != 2:
+                continue
+            j2_pecas_seguidas += 1
+
+        # Não tem 1, basta só ver se dá pra empurrar os próximos números
+        if j1_primeiro_indice is None and j2_pecas_seguidas in [1, 2] and 0 in proximas_posicoes_valores:
+            # Move as peças encontradas
+            i = j2_pecas_seguidas
+            while i > j2_primeiro_indice:
+                i_pos = proximas_posicoes[i-1]
+                i_prox_pos = proximas_posicoes[i]
+                self.set_tabuleiro((i_prox_pos), self.get_tabuleiro(i_pos))
+                self.set_tabuleiro((i_pos), 0)
+                i -= 1
+            # Move a peça que foi selecionada
+            self.set_tabuleiro(proxima_pos, self.get_tabuleiro(pos_atual))
+            self.set_tabuleiro(pos_atual, 0)
+            return 0
+
+        # Não tem 1, basta só ver se dá pra empurrar os próximos números
+        # O número de peças seguidas está como 1 e 2 por que a
+        # primeira peça está sendo contada
+        if j2_primeiro_indice is None and j1_pecas_seguidas in [1, 2] and 0 in proximas_posicoes_valores:
+            # Move as peças encontradas
+            i = j1_pecas_seguidas
+            while i > j1_primeiro_indice:
+                i_pos = proximas_posicoes[i-1]
+                i_prox_pos = proximas_posicoes[i]
+                self.set_tabuleiro((i_prox_pos), self.get_tabuleiro(i_pos))
+                self.set_tabuleiro((i_pos), 0)
+                i -= 1
+            # Move a peça que foi selecionada
+            self.set_tabuleiro(proxima_pos, self.get_tabuleiro(pos_atual))
+            self.set_tabuleiro(pos_atual, 0)
+            return 0
+
+        # Ação caso haja peças 1 e 2 na mesma direção
+        if j2_primeiro_indice is not None and j1_primeiro_indice is not None:
+            # É adicionado +1 dependendo do valor da posição atual
+            diferenca_pecas = 0
+            if pos_atual_valor == 1:
+                diferenca_pecas = (j1_pecas_seguidas + 1) - j2_pecas_seguidas
+            elif pos_atual_valor == 2:
+                diferenca_pecas = (j2_pecas_seguidas + 1) - j1_pecas_seguidas
+            
+            # Se for 0 ou menor, não faz nada (Podemos considerar o movimento como inválido)
+            if diferenca_pecas <= 0 and abs(diferenca_pecas) >= 3:
+                return 1
+            else:
+                i = len(proximas_posicoes) - 1
+                self.retirar_peca(proximas_posicoes[-1])
+                while i > 0:
+                    i_pos = proximas_posicoes[i-1]
+                    i_prox_pos = proximas_posicoes[i]
+                    self.set_tabuleiro((i_prox_pos), self.get_tabuleiro(i_pos))
+                    self.set_tabuleiro((i_pos), 0)
+                    i -= 1
+                self.set_tabuleiro(proxima_pos, self.get_tabuleiro(pos_atual))
+                self.set_tabuleiro(pos_atual, 0)
+                self.pecas_derrubadas[pos_atual_valor] += 1
+
+        return 0
 
     def posicao_valida(self, pos: tuple):
         linha = pos[0]
@@ -113,6 +216,7 @@ class Abalone:
             "bd": (pos[0] + 1, pos[1]) # Aumenta uma linha, anda uma coluna
         }
 
+        direcao = direcao.lower()
         proxima_pos = movimentos[direcao]
         prox_linha = proxima_pos[0]
         prox_linha_len = len(self.tabuleiro[prox_linha])
