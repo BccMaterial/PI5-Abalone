@@ -48,26 +48,34 @@ class Abalone:
         estado = deepcopy(no.estado)
         possiveis_direcoes = ["e", "d", "ce", "cd", "be", "bd"]
         nos_sucessores = []
-        distancias_centro = self.distancia_centro()
 
         random.shuffle(possiveis_direcoes)
-
         for i, linha in enumerate(self.tabuleiro):
             for j, coluna in enumerate(linha):
                 if coluna == 0:
                     continue
                 for direcao in possiveis_direcoes:
                     tupla = (i, j)
+                    coef_util = self.funcao_utilidade(tupla)
+                    distancia_centro = self.calc_distancia_centro(tupla)
                     tabuleiro_original = deepcopy(self.tabuleiro)
-                    self.movimentar_peca(tupla, direcao)
+                    tabuleiro_original.movimentar_peca(tupla, direcao)
 
                     if estado != self.tabuleiro:
-                        distancia = distancias_centro.get((i, j), )
-                        nos_sucessores.append(No(self.tabuleiro, distancias_centro[estado], no, f"{tupla} {direcao}"))
+                        nos_sucessores.append(No(tabuleiro_original.tabuleiro, no, f"{tupla} {direcao}", coef_util, distancia_centro))
 
                     self.tabuleiro = tabuleiro_original
 
         return nos_sucessores
+
+    def funcao_utilidade(self, pos: tuple):
+        direcoes = ["e", "d", "ce", "cd", "be", "bd"]
+        posicoes_ao_redor = [self.calcular_pos(pos, x) for x in direcoes]
+        posicoes_ao_redor_valores = [self.get_tabuleiro(pos) for pos in posicoes_ao_redor]
+        qtd_pecas_ao_redor = len([x for x in posicoes_ao_redor_valores if x != 0])
+        distancia_centro = self.calc_distancia_centro(pos)
+        coef_utilidade = qtd_pecas_ao_redor/(distancia_centro+1)
+        return coef_utilidade
 
     # Get e set compatível com tuplas
     def get_tabuleiro(self, pos: tuple):
@@ -336,5 +344,10 @@ class Abalone:
                     distancias_centro[(i,j)] = distancia
 
         return distancias_centro
+
+    def calc_distancia_centro(self, pos: tuple):
+        x, y = pos
+        c_x, c_y = (4, 4)
+        return abs(math.pow((x - c_x), 2) + math.pow((y - c_y), 2))
 
 
