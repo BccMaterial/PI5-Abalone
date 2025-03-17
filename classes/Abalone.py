@@ -45,21 +45,27 @@ class Abalone:
         ]
 
     def gerar_sucessores(self, no: No):
-        estado = no.estado
+        estado = deepcopy(no.estado)
         possiveis_direcoes = ["e", "d", "ce", "cd", "be", "bd"]
         nos_sucessores = []
+        distancias_centro = self.distancia_centro()
 
         random.shuffle(possiveis_direcoes)
+
         for i, linha in enumerate(self.tabuleiro):
-            for j, coluna in linha:
+            for j, coluna in enumerate(linha):
                 if coluna == 0:
                     continue
                 for direcao in possiveis_direcoes:
                     tupla = (i, j)
+                    tabuleiro_original = deepcopy(self.tabuleiro)
                     self.movimentar_peca(tupla, direcao)
 
                     if estado != self.tabuleiro:
-                        nos_sucessores.append(No(self.tabuleiro, no, f"{tupla} {direcao}"))
+                        distancia = distancias_centro.get((i, j), )
+                        nos_sucessores.append(No(self.tabuleiro, distancias_centro[estado], no, f"{tupla} {direcao}"))
+
+                    self.tabuleiro = tabuleiro_original
 
         return nos_sucessores
 
