@@ -1,6 +1,8 @@
+import math
 import re, random
 from .no import No
 from copy import deepcopy
+from math import sqrt
 
 class Abalone:
     def __init__(self):
@@ -35,7 +37,7 @@ class Abalone:
             [1, 1, 1, 1, 1, 1],
             [0, 0, 1, 1, 1, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0], #Centro: (4,4)
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 2, 2, 2, 0, 0],
             [2, 2, 2, 2, 2, 2],
@@ -315,3 +317,18 @@ class Abalone:
 
             # Alterna o turno
             self.turno_jogador = 3 - self.turno_jogador
+
+    def distancia_centro(self):
+        centro_tabuleiro = (4,4) #Aproximadamente o ponto central do tabuleiro
+        distancias_centro = {} #Distancia de cada esfera em relação ao centro
+        tabuleiro = self.tabuleiro
+
+        for i, linha in enumerate(tabuleiro): #Percorre as linhas
+            for j, esfera in enumerate(linha): #Percorre cada peça dentro das listas
+                if esfera in [1,2]:
+                    distancia = abs(math.pow((i-centro_tabuleiro[0]), 2) + math.pow((j - centro_tabuleiro[1]), 2)) #Distância de manhattan
+                    distancias_centro[(i,j)] = distancia
+
+        return distancias_centro
+
+
