@@ -72,7 +72,8 @@ class Abalone:
         direcoes = ["e", "d", "ce", "cd", "be", "bd"]
         pecas_direcoes = dict()
         pos_valor = self.get_tabuleiro(pos)
-
+        
+        # Armazena os valores de cada direção
         for direcao in direcoes:
             pecas_direcoes[direcao] = list()
             proximo_valor = -1
@@ -84,18 +85,20 @@ class Abalone:
                 if proximo_valor is not None:
                     pecas_direcoes[direcao].append(proximo_valor)
 
+        # Valida se pode ser empurrado em qualquer direção
         # Se em qualquer direção pode ser empurrado, retorna 1.
         # Se em qualquer direção pode empurrar, retorna 0
         for direcao in direcoes:
             lista_valores = pecas_direcoes[direcao]
 
+            # Se tiver 0, pula, pois não pode empurrar ou ser empurrado
             if 0 in lista_valores:
                 continue
 
             if self.quem_pode_empurrar([pos_valor, *lista_valores]) == pos_valor:
                 return 0
             else:
-                return 1
+                return 100
 
         # Caso não possa empurrar ou ser empurrado, calcula o coef_utilidade até o centro
         posicoes_ao_redor = [self.calcular_pos(pos, x) for x in direcoes]
@@ -146,6 +149,10 @@ class Abalone:
         """
         Observações:
         - peca_pos é formada por: (linha, coluna)
+
+        Retorna:
+        - 1 se a posição for inválida
+        - 0 se for válida
         """        
         pos_atual = peca_pos
         pos_atual_valor = self.get_tabuleiro(pos_atual)
@@ -158,9 +165,10 @@ class Abalone:
 
         it_proxima_pos = pos_atual
 
-        # Itera até achar um 0 ou até a última posição da direção
+        # Itera até achar um 0 ou até a borda do tabuleiro
         while it_proxima_pos is not None:
             it_proxima_pos = self.calcular_pos(it_proxima_pos, direcao)
+
             if self.get_tabuleiro(it_proxima_pos) is None:
                 break
 
@@ -172,7 +180,7 @@ class Abalone:
                 proximas_posicoes.append(it_proxima_pos)
 
 
-        # A primeira posição é 0
+        # A primeira posição é 0, então pode mover
         if len(proximas_posicoes) == 1:
             self.set_tabuleiro(proxima_pos, self.get_tabuleiro(pos_atual))
             self.set_tabuleiro(pos_atual, 0)
@@ -201,6 +209,8 @@ class Abalone:
             j2_pecas_seguidas += 1
 
         # Não tem 1, basta só ver se dá pra empurrar os próximos números
+        # O número de peças seguidas está como 1 e 2 por que a
+        # primeira peça está sendo contada
         if j1_primeiro_indice is None and j2_pecas_seguidas in [1, 2] and 0 in proximas_posicoes_valores:
             # Move as peças encontradas
             i = j2_pecas_seguidas
@@ -215,7 +225,7 @@ class Abalone:
             self.set_tabuleiro(pos_atual, 0)
             return 0
 
-        # Não tem 1, basta só ver se dá pra empurrar os próximos números
+        # Não tem 2, basta só ver se dá pra empurrar os próximos números
         # O número de peças seguidas está como 1 e 2 por que a
         # primeira peça está sendo contada
         if j2_primeiro_indice is None and j1_pecas_seguidas in [1, 2] and 0 in proximas_posicoes_valores:
@@ -234,7 +244,7 @@ class Abalone:
 
         # Ação caso haja peças 1 e 2 na mesma direção
         if j2_primeiro_indice is not None and j1_primeiro_indice is not None:
-            # É adicionado +1 dependendo do valor da posição atual
+            # É adicionado +1 em j1 ou j2 dependendo do valor da posição atual
             diferenca_pecas = 0
             if pos_atual_valor == 1:
                 diferenca_pecas = (j1_pecas_seguidas + 1) - j2_pecas_seguidas
@@ -245,6 +255,8 @@ class Abalone:
             if diferenca_pecas <= 0 and abs(diferenca_pecas) >= 3:
                 return 1
             else:
+                # Caso contrário, empurramos movendo as posições de cada
+                # peça, e retirando a última
                 i = len(proximas_posicoes) - 1
                 self.retirar_peca(proximas_posicoes[-1])
                 while i > 0:
