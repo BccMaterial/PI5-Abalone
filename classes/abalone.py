@@ -2,7 +2,6 @@ import math
 import re, random
 from .no import No
 from copy import deepcopy
-from math import sqrt
 
 class Abalone:
     def __init__(self):
@@ -18,20 +17,23 @@ class Abalone:
     # 1 e 2 são utilizados para representar os espaços ocupados pelas peças 
     # dos jogadores e None é utilizado para representar os espaços não ocupados
     def criar_tabuleiro(self):
-        # Baseado em relação a este tabuleiro: https://www.divertivida.com.br/abalone-classic
-        # Representação do tabuleiro:
-        #
-        #     2 2 2 2 2
-        #    2 2 2 2 2 2
-        #   - - 2 2 2 - -
-        #  - - - - - - - -
-        # - - - - - - - - -
-        #  - - - - - - - -
-        #   - - 1 1 1 - - 
-        #    1 1 1 1 1 1
-        #     1 1 1 1 1
-        #
-        # O -1 é pra compensar os tamanhos das listas (vai facilitar na hora de mover)
+        """
+            Baseado em relação a este tabuleiro: https://www.divertivida.com.br/abalone-classic
+            Representação do tabuleiro:
+            ```
+                2 2 2 2 2
+               2 2 2 2 2 2
+              - - 2 2 2 - -
+             - - - - - - - -
+            - - - - - - - - -
+             - - - - - - - -
+              - - 1 1 1 - - 
+               1 1 1 1 1 1
+                1 1 1 1 1
+            ```
+            
+            O -1 é pra compensar os tamanhos das listas (vai facilitar na hora de mover)
+        """
         return [
             [1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1, 1],
@@ -56,7 +58,7 @@ class Abalone:
                     continue
                 for direcao in possiveis_direcoes:
                     tupla = (i, j)
-                    coef_util = self.funcao_utilidade(tupla)
+                    coef_util = self.utilidade(tupla)
                     distancia_centro = self.calc_distancia_centro(tupla)
                     tabuleiro_original = deepcopy(self.tabuleiro)
                     tabuleiro_original.movimentar_peca(tupla, direcao)
@@ -64,11 +66,9 @@ class Abalone:
                     if estado != self.tabuleiro:
                         nos_sucessores.append(No(tabuleiro_original.tabuleiro, no, f"{tupla} {direcao}", coef_util, distancia_centro))
 
-                    self.tabuleiro = tabuleiro_original
-
         return nos_sucessores
 
-    def funcao_utilidade(self, pos: tuple):
+    def utilidade(self, pos: tuple):
         direcoes = ["e", "d", "ce", "cd", "be", "bd"]
         pecas_direcoes = dict()
         pos_valor = self.get_tabuleiro(pos)
@@ -399,8 +399,8 @@ class Abalone:
             self.turno_jogador = 3 - self.turno_jogador
 
     def distancia_centro(self):
-        centro_tabuleiro = (4,4) #Aproximadamente o ponto central do tabuleiro
-        distancias_centro = {} #Distancia de cada esfera em relação ao centro
+        centro_tabuleiro = (4,4) # Ponto central do tabuleiro
+        distancias_centro = {} # Distancia de cada esfera em relação ao centro
         tabuleiro = self.tabuleiro
 
         for i, linha in enumerate(tabuleiro): #Percorre as linhas
