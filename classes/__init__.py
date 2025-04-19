@@ -1,2 +1,2 @@
-from .Abalone import Abalone
+from .abalone import Abalone
 from .no import No
