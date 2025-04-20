@@ -1,3 +1,4 @@
+import math
 from copy import deepcopy
 from classes.abalone import JogadaAbalone
 from classes.base.jogo import Jogo
@@ -267,9 +268,85 @@ class JogoAbalone(Jogo):
     def venceu(self):
         return self.placar[self.turno()] >= 6
 
+    def pos_utilidade(self, pos: tuple):
+        pecas_direcoes = dict()
+        pos_valor = self.get_estado(pos)
+        
+        # Armazena os valores de cada direção
+        for direcao in self.direcoes_possiveis:
+            pecas_direcoes[direcao] = list()
+            proximo_valor = -1
+            proxima_pos = pos
+            # Itera nas casas até achar 0 ou até a borda
+            while proximo_valor != 0 and proximo_valor != None:
+                proxima_pos = self.calcular_pos(proxima_pos, direcao)
+                proximo_valor = self.get_estado(proxima_pos)
+                if proximo_valor is not None:
+                    pecas_direcoes[direcao].append(proximo_valor)
+
+        # Valida se pode ser empurrado em qualquer direção
+        # Se em qualquer direção pode ser empurrado, retorna 1.
+        # Se em qualquer direção pode empurrar, retorna 0
+        for direcao in self.direcoes_possiveis:
+            lista_valores = pecas_direcoes[direcao]
+
+            # Se tiver 0, pula, pois não pode empurrar ou ser empurrado
+            if 0 in lista_valores:
+                continue
+
+            if self.quem_pode_empurrar([pos_valor, *lista_valores]) == pos_valor:
+                return float("-inf")
+            else:
+                return float("+inf")
+
+        # Caso não possa empurrar ou ser empurrado, calcula o coef_utilidade até o centro
+        posicoes_ao_redor = [self.calcular_pos(pos, x) for x in self.direcoes_possiveis]
+        posicoes_ao_redor_valores = [self.get_tabuleiro(pos) for pos in posicoes_ao_redor]
+        qtd_pecas_ao_redor = len([x for x in posicoes_ao_redor_valores if x != 0])
+        distancia_centro = self.calc_distancia_centro(pos)
+        coef_utilidade = qtd_pecas_ao_redor/(distancia_centro+1)
+        return coef_utilidade
+
+    def calc_distancia_centro(self, pos: tuple):
+        x, y = pos
+        c_x, c_y = (4, 4)
+        return abs(math.pow((x - c_x), 2) + math.pow((y - c_y), 2))
+
+    def quem_pode_empurrar(self, valores):
+        """
+        Dado um array de valores de 1 e 2, verifica quem pode empurrar naquela situação
+
+        0 -> nenhuma peça pode ser empurrada
+        1 -> jogador 1 pode empurrar
+        2 -> jogador 2 pode empurrar
+        """
+        qtd_pecas_j1 = len([x for x in valores if x == 1])
+        qtd_pecas_j2 = len([x for x in valores if x == 2])
+        
+        if qtd_pecas_j1 == qtd_pecas_j2 or 0 in valores:
+            return 0
+
+        if qtd_pecas_j1 == 0 or qtd_pecas_j2 == 2:
+            return 0
+
+        qtd_pecas_j1_primeiro_indice = valores.index(1)
+        qtd_pecas_j2_primeiro_indice = valores.index(2)
+        
+        if qtd_pecas_j1 > qtd_pecas_j2 and qtd_pecas_j1_primeiro_indice < qtd_pecas_j2_primeiro_indice:
+            return 1
+        else:
+            return 2
+
     def calcular_utilidade(self):
         # NOTE: A função utilidade antiga tem que ser refeita
-        return super().calcular_utilidade()
+        valores_utilidade = []
+        for i in range(len(self.estado)):
+            for j in range(len(i)):
+                pos = (i, j)
+                if self.get_estado(pos) != self.turno():
+                    continue
+                valores_utilidade.append(self.pos_utilidade(pos))
+        return sum(valores_utilidade) / len(valores_utilidade)
 
     def imprimir_jogada(self, turno, jogada: JogadaAbalone):
         print(f"Jogador {turno} moveu a peça {jogada.posicao} na direção {jogada.direcao}")
