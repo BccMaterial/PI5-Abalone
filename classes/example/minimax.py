@@ -1,5 +1,3 @@
-from jogo import Jogo, Jogador
-
 def minimax(jogo, turno_max, jogador, profundidade_maxima = 8):
   # se o jogo acabou ou se a profundidade é máxima
   if jogo.venceu() or jogo.empate() or profundidade_maxima == 0:
