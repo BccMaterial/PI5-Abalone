@@ -35,10 +35,10 @@ class JogadorAgente(Jogador):
         profundidade_maxima = 8
         melhor_valor = float("-inf")
         melhor_jogada = -1
-        print(jogo.turno().imprimir())
-        for proximo_jogo in jogo.gerar_jogadas_validas():
-            utilidade = minimax_alfabeta(jogo.jogar(proximo_jogo), jogo.turno(), profundidade_maxima)
+        # print(jogo.turno().imprimir())
+        for proxima_jogada in jogo.jogadas_validas():
+            utilidade = minimax_alfabeta(jogo.jogar(proxima_jogada), jogo.turno(), profundidade_maxima)
             if utilidade > melhor_valor:
                 melhor_valor = utilidade
-                melhor_jogada = proximo_jogo
+                melhor_jogada = proxima_jogada
         return melhor_jogada

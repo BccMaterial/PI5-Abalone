@@ -1,25 +1,38 @@
-from classes import Abalone
+import time
+from classes.abalone.jogo import JogoAbalone
+from classes.abalone.jogador import JogadorAbaloneHumano, JogadorAbaloneAgente
 
 if __name__ == "__main__":
-    jogo = Abalone() # Cria um jogo
-    jogo.movimentar_peca((0, 1), "bd")
-    jogo.movimentar_peca((1, 2), "bd")
-    jogo.movimentar_peca((2, 3), "bd")
-    jogo.movimentar_peca((3, 4), "bd")
-    jogo.imprimir_tabuleiro()
-    print(jogo.funcao_utilidade((4, 5)))
-    # jogo.movimentar_peca((8, 2), "ce")
-    # jogo.movimentar_peca((7, 2), "ce")
-    # jogo.movimentar_peca((6, 4), "e")
-    # jogo.movimentar_peca((6, 3), "e")
-    # jogo.movimentar_peca((8, 1), "ce")
-    # jogo.movimentar_peca((7, 1), "ce")
-    # jogo.movimentar_peca((8, 0), "ce")
-    # jogo.movimentar_peca((7, 0), "ce")
-    # jogo.movimentar_peca((6, 2), "ce")
-    # jogo.movimentar_peca((5, 0), "cd")
-    # jogo.movimentar_peca((4, 1), "cd")
-    # jogo.movimentar_peca((3, 1), "cd")
-    # jogo.movimentar_peca((2, 1), "cd")
-    # jogo.imprimir_tabuleiro()
-    # jogo.jogar()
+    jogo = JogoAbalone()
+    jogador_humano = JogadorAbaloneHumano(1)
+    jogador_agente = JogadorAbaloneAgente(2)
+
+    print("Situação do jogo:")
+    while True:
+        # Turno do jogador
+        jogada_humano = jogador_humano.jogar(jogo)
+        print("==================================================")
+        jogo.imprimir_jogada(jogador_humano, jogada_humano)
+        jogo = jogo.jogar(jogada_humano)
+
+        if jogo.venceu():
+            print(f"{jogador_humano.imprimir()} venceu!")
+            break
+
+        # Turno do agente
+        print("Situação do jogo:")
+        jogo.imprimir()
+        print("==================================================")
+
+        print(f"Jogador {jogador_agente.imprimir()} está pensando...")
+        time.sleep(1.5)
+
+        jogada_agente = jogador_agente.jogar(jogo)
+        print(jogo.imprimir_jogada(jogador_agente, jogada_agente))
+        print("==================================================")
+        jogo = jogo.jogar(jogada_agente)
+
+        if jogo.venceu():
+            print(f"{jogador_humano.imprimir()} venceu!")
+            break
+

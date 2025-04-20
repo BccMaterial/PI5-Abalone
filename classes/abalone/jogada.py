@@ -1,4 +1,3 @@
-from classes.abalone import JogoAbalone
 from classes.base.jogada import Jogada
 
 class JogadaAbalone(Jogada):
@@ -6,8 +5,8 @@ class JogadaAbalone(Jogada):
         self.posicao = posicao
         self.direcao = direcao
 
-    def e_valida(self, jogo: JogoAbalone):
+    def e_valida(self, jogo):
         return \
             jogo.calcular_pos(self.posicao, self.direcao) is not None and \
-            jogo.get_estado(self.posicao) != jogo.turno() and \
-            self.direcao not in jogo.direcoes_possiveis
+            jogo.get_estado(self.posicao) == jogo.turno() and \
+            self.direcao in jogo.direcoes_possiveis

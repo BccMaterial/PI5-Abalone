@@ -1,6 +1,6 @@
 import math
 from copy import deepcopy
-from classes.abalone import JogadaAbalone
+from classes.abalone.jogada import JogadaAbalone
 from classes.base.jogo import Jogo
 
 class JogoAbalone(Jogo):
@@ -187,10 +187,10 @@ class JogoAbalone(Jogo):
         linha = pos[0]
         coluna = pos[1]
 
-        if linha < 0 or linha >= len(self.tabuleiro):
+        if linha < 0 or linha >= len(self.estado):
             return False
 
-        if coluna < 0 or coluna >= len(self.tabuleiro[linha]):
+        if coluna < 0 or coluna >= len(self.estado[linha]):
             return False
 
         return True
@@ -212,7 +212,11 @@ class JogoAbalone(Jogo):
         }
 
         direcao = direcao.lower()
-        proxima_pos = movimentos[direcao]
+        proxima_pos = movimentos.get(direcao, None)
+
+        if proxima_pos is None or not self.posicao_valida(proxima_pos):
+            return None
+
         prox_linha = proxima_pos[0]
         prox_linha_len = len(self.estado[prox_linha])
         linha_atual_len = len(self.estado[pos[0]])
@@ -256,7 +260,7 @@ class JogoAbalone(Jogo):
     def jogadas_validas(self):
         lista_jogadas = []
         for i in range(len(self.estado)):
-            for j in range(len(i)):
+            for j in range(len(self.estado[i])):
                 pos = (i, j)
                 if self.get_estado(pos) != self.turno():
                     continue
@@ -337,19 +341,19 @@ class JogoAbalone(Jogo):
         else:
             return 2
 
-    def calcular_utilidade(self):
+    def calcular_utilidade(self, jogador):
         # NOTE: A função utilidade antiga tem que ser refeita
         valores_utilidade = []
         for i in range(len(self.estado)):
-            for j in range(len(i)):
+            for j in range(len(self.estado[i])):
                 pos = (i, j)
-                if self.get_estado(pos) != self.turno():
+                if self.get_estado(pos) != jogador:
                     continue
                 valores_utilidade.append(self.pos_utilidade(pos))
-        return sum(valores_utilidade) / len(valores_utilidade)
+        return sum(valores_utilidade) / (len(valores_utilidade) + 1)
 
-    def imprimir_jogada(self, turno, jogada: JogadaAbalone):
-        print(f"Jogador {turno} moveu a peça {jogada.posicao} na direção {jogada.direcao}")
+    def imprimir_jogada(self, jogador, jogada: JogadaAbalone):
+        print(f"Jogador {jogador.identificador} moveu a peça {jogada.posicao} na direção {jogada.direcao}")
 
     def imprimir(self):
         tamanho_maximo = len(max(self.estado, key=len))

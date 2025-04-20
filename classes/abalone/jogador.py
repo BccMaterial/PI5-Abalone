@@ -1,5 +1,5 @@
-from classes.base.jogador import JogadorHumano
-from classes.abalone import JogadaAbalone
+from classes.base.jogador import JogadorAgente, JogadorHumano
+from classes.abalone.jogada import JogadaAbalone
 import re
 
 class JogadorAbaloneHumano(JogadorHumano):
@@ -11,7 +11,7 @@ class JogadorAbaloneHumano(JogadorHumano):
         print("- Insira a coordenada da peça que você deseja mover -> \"NLinha, NColuna\"")
         print("- Você pode contar as linhas a partir do 0")
         print("- Caso queira sair, digite q")
-        print(f"Turno do jogador {self.turno()}")
+        print(f"Turno do jogador {self.identificador}")
         while not jogada.e_valida(jogo):
             ultimo_input = input("Digite as coordenadas \"NLinha, NColuna\": ")
             if ultimo_input == "q":
@@ -25,7 +25,7 @@ class JogadorAbaloneHumano(JogadorHumano):
             pos_inserida = tuple([int(x) for x in ultimo_input.split(", ")])
             jogada.posicao = pos_inserida
 
-            if jogo.get_estado(pos_inserida) != self.turno():
+            if jogo.get_estado(pos_inserida) != jogo.turno():
                 print("A peça selecionada é do outro jogador! Por favor, selecione outra.")
                 continue
 
@@ -36,7 +36,6 @@ class JogadorAbaloneHumano(JogadorHumano):
             print("cd -> diaconal cima direita")
             print("be -> diagonal baixo esquerda")
             print("bd -> diagonal baixo direita")
-            ultimo_input = input("Agora, digite a direção: ")
             direcao_valida = False
             while not direcao_valida:
                 ultimo_input = input("Agora, digite a direção: ")
@@ -50,5 +49,10 @@ class JogadorAbaloneHumano(JogadorHumano):
 
                 jogada.direcao = ultimo_input
                 direcao_valida = True
+            if not jogada.e_valida(jogo):
+                print(f"Jogada inválida! Selecione as suas peças, ou mova para uma direção válida.")
         return jogada
 
+class JogadorAbaloneAgente(JogadorAgente):
+    def __init__(self, identificador):
+        super().__init__(identificador)
