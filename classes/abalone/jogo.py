@@ -305,7 +305,7 @@ class JogoAbalone(Jogo):
 
         # Caso não possa empurrar ou ser empurrado, calcula o coef_utilidade até o centro
         posicoes_ao_redor = [self.calcular_pos(pos, x) for x in self.direcoes_possiveis]
-        posicoes_ao_redor_valores = [self.get_tabuleiro(pos) for pos in posicoes_ao_redor]
+        posicoes_ao_redor_valores = [self.get_estado(pos) for pos in posicoes_ao_redor]
         qtd_pecas_ao_redor = len([x for x in posicoes_ao_redor_valores if x != 0])
         distancia_centro = self.calc_distancia_centro(pos)
         coef_utilidade = qtd_pecas_ao_redor/(distancia_centro+1)
@@ -342,15 +342,35 @@ class JogoAbalone(Jogo):
             return 2
 
     def calcular_utilidade(self, jogador):
-        # NOTE: A função utilidade antiga tem que ser refeita
-        valores_utilidade = []
-        for i in range(len(self.estado)):
-            for j in range(len(self.estado[i])):
-                pos = (i, j)
-                if self.get_estado(pos) != jogador:
+        util_total = 0 #Soma das utilidades de todas as peças do jogador
+        num_pecas_jogador = 0
+        pecas_empurraveis = 0
+        pecas_em_risco = 0 #Quantidade de peças do jogador que podem ser empurradas
+
+        for i in range(len(self.estado)): #Linha
+            for j in range(len(self.estado[i])): #Coluna
+                posicao = (i, j)
+
+                if self.get_estado(posicao) != jogador: #Verifica se a peça não pertence ao jogador
                     continue
-                valores_utilidade.append(self.pos_utilidade(pos))
-        return sum(valores_utilidade) / (len(valores_utilidade) + 1)
+
+                val_utilidade = self.pos_utilidade(posicao)
+
+                if val_utilidade == float('inf'): #Se retorna inf, pode empurrar
+                    pecas_empurraveis += 1
+                elif val_utilidade == float('-inf'): #Se retorna inf, pode ser empurrada
+                    pecas_em_risco += 1
+                else: #Caso não possa empurrar ou ser empurrada, calcula a distância até o centro
+                    util_total += val_utilidade
+
+                num_pecas_jogador += 1
+
+        if num_pecas_jogador == 0:
+            return 0
+
+        utilidade_media = util_total / num_pecas_jogador
+
+        return utilidade_media + (2 * pecas_empurraveis) - (1.5 * pecas_em_risco) #Cada peça que pode empurrar ganha um bônus de +2 e cada peça que pode ser empurrada sobre uma penalização de -1.5
 
     def imprimir_jogada(self, jogador, jogada: JogadaAbalone):
         print(f"Jogador {jogador.identificador} moveu a peça {jogada.posicao} na direção {jogada.direcao}")
