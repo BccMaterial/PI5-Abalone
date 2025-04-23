@@ -4,10 +4,11 @@ from classes.abalone.jogada import JogadaAbalone
 from classes.base.jogo import Jogo
 
 class JogoAbalone(Jogo):
-    def __init__(self, estado = None, turno = 1, placar = None):
+    def __init__(self, estado = None, turno = 1, placar = None, turnos = 0):
         self.estado = estado
         self.placar = placar
         self._turno = turno
+        self.turnos = turnos
         self.direcoes_possiveis = ["e", "d", "ce", "cd", "be", "bd"]
 
         if estado is None:
@@ -255,7 +256,7 @@ class JogoAbalone(Jogo):
     def jogar(self, jogada: JogadaAbalone):
         temp = deepcopy(self)
         temp.movimentar_peca(jogada.posicao, jogada.direcao)
-        return JogoAbalone(temp.estado, temp.proximo_turno(), temp.placar)
+        return JogoAbalone(temp.estado, temp.proximo_turno(), temp.placar, temp.turnos + 1)
 
     def jogadas_validas(self):
         lista_jogadas = []
@@ -275,8 +276,8 @@ class JogoAbalone(Jogo):
     def pos_utilidade(self, pos: tuple):
         pecas_direcoes = dict()
         pos_valor = self.get_estado(pos)
-        
         # Armazena os valores de cada direção
+
         for direcao in self.direcoes_possiveis:
             pecas_direcoes[direcao] = list()
             proximo_valor = -1
