@@ -113,18 +113,18 @@ class JogoAbalone(Jogo):
         # Contagem de peças seguidas
         for posicao in proximas_posicoes:
             if self.get_estado(posicao) != 1:
-                continue
+                break
             j1_pecas_seguidas += 1
 
         for posicao in proximas_posicoes:
             if self.get_estado(posicao) != 2:
-                continue
+                break
             j2_pecas_seguidas += 1
 
         # Não tem 1, basta só ver se dá pra empurrar os próximos números
         # O número de peças seguidas está como 1 e 2 por que a
         # primeira peça está sendo contada
-        if j1_primeiro_indice is None and j2_pecas_seguidas in [1, 2] and 0 in proximas_posicoes_valores:
+        if j1_primeiro_indice is None and j2_pecas_seguidas in [1, 2] and 0 in proximas_posicoes_valores and pos_atual_valor == 2:
             # Move as peças encontradas
             i = j2_pecas_seguidas
             while i > j2_primeiro_indice:
@@ -141,7 +141,7 @@ class JogoAbalone(Jogo):
         # Não tem 2, basta só ver se dá pra empurrar os próximos números
         # O número de peças seguidas está como 1 e 2 por que a
         # primeira peça está sendo contada
-        if j2_primeiro_indice is None and j1_pecas_seguidas in [1, 2] and 0 in proximas_posicoes_valores:
+        if j2_primeiro_indice is None and j1_pecas_seguidas in [1, 2] and 0 in proximas_posicoes_valores and pos_atual_valor == 1:
             # Move as peças encontradas
             i = j1_pecas_seguidas
             while i > j1_primeiro_indice:
@@ -215,7 +215,7 @@ class JogoAbalone(Jogo):
         direcao = direcao.lower()
         proxima_pos = movimentos.get(direcao, None)
 
-        if proxima_pos is None or not self.posicao_valida(proxima_pos):
+        if proxima_pos is None or proxima_pos[0] not in range(0, len(self.estado)):
             return None
 
         prox_linha = proxima_pos[0]

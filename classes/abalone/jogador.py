@@ -18,11 +18,11 @@ class JogadorAbaloneHumano(JogadorHumano):
                 print("Encerrando processo...")
                 exit(0)
 
-            if not re.match(r"\d,\s\d", ultimo_input):
+            if not re.match(r"^\d,\s?\d$", ultimo_input):
                 print("Formato inválido. Por favor, digite no formato \"NLinha, NColuna\"")
                 continue
-
-            pos_inserida = tuple([int(x) for x in ultimo_input.split(", ")])
+            
+            pos_inserida = tuple([int(x) for x in re.split(r",\s?", ultimo_input)])
             jogada.posicao = pos_inserida
 
             if jogo.get_estado(pos_inserida) != jogo.turno():

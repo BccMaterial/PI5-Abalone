@@ -3,9 +3,9 @@ from classes.abalone.jogo import JogoAbalone
 from classes.abalone.jogador import JogadorAbaloneHumano, JogadorAbaloneAgente
 
 if __name__ == "__main__":
-    jogo = JogoAbalone()
-    jogador_humano = JogadorAbaloneHumano(1)
-    jogador_agente = JogadorAbaloneAgente(2)
+    jogador_humano = JogadorAbaloneHumano(2)
+    jogador_agente = JogadorAbaloneAgente(1)
+    jogo = JogoAbalone(turno=jogador_humano.identificador)
 
     print("Situação do jogo:")
     while True:
