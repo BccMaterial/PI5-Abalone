@@ -4,7 +4,7 @@ import re
 
 class JogadorAbaloneHumano(JogadorHumano):
     def jogar(self, jogo):
-        jogada = JogadaAbalone((-1, -1), "")
+        jogada = JogadaAbalone((-1, -1), "", jogo.turno())
         jogo.imprimir()
         print("Instruções")
         print("----------------------------------")

@@ -9,6 +9,7 @@ class JogoAbalone(Jogo):
         self.placar = placar
         self._turno = turno
         self.turnos = turnos
+        self.ultima_jogada = None
         self.direcoes_possiveis = ["e", "d", "ce", "cd", "be", "bd"]
 
         if estado is None:
@@ -74,7 +75,7 @@ class JogoAbalone(Jogo):
 
         if proxima_pos is None:
             # print("Posição selecionada inválida!")
-            return
+            return 1
 
         it_proxima_pos = pos_atual
 
@@ -92,11 +93,16 @@ class JogoAbalone(Jogo):
             if it_proxima_pos is not None:
                 proximas_posicoes.append(it_proxima_pos)
 
+        
+        # Se todos são iguais, então é uma jogada inválida
+        if all(self.get_estado(pos) == pos_atual_valor for pos in proximas_posicoes):
+            return 1
 
         # A primeira posição é 0, então pode mover
         if len(proximas_posicoes) == 1:
             self.set_estado(proxima_pos, self.get_estado(pos_atual))
             self.set_estado(pos_atual, 0)
+            self.ultima_jogada = JogadaAbalone(pos_atual, direcao, self.get_estado(pos_atual))
             return 0
 
         # Handling de quando a primeira posição não é 0
@@ -136,6 +142,7 @@ class JogoAbalone(Jogo):
             # Move a peça que foi selecionada
             self.set_estado(proxima_pos, self.get_estado(pos_atual))
             self.set_estado(pos_atual, 0)
+            self.ultima_jogada = JogadaAbalone(pos_atual, direcao, self.get_estado(pos_atual))
             return 0
 
         # Não tem 2, basta só ver se dá pra empurrar os próximos números
@@ -153,6 +160,7 @@ class JogoAbalone(Jogo):
             # Move a peça que foi selecionada
             self.set_estado(proxima_pos, self.get_estado(pos_atual))
             self.set_estado(pos_atual, 0)
+            self.ultima_jogada = JogadaAbalone(pos_atual, direcao, self.get_estado(pos_atual))
             return 0
 
         # Ação caso haja peças 1 e 2 na mesma direção
@@ -182,6 +190,7 @@ class JogoAbalone(Jogo):
                 self.set_estado(pos_atual, 0)
                 self.placar[self.turno()] += 1
 
+        self.ultima_jogada = JogadaAbalone(pos_atual, direcao, self.get_estado(pos_atual))
         return 0
 
     def posicao_valida(self, pos: tuple):
@@ -266,8 +275,10 @@ class JogoAbalone(Jogo):
                 if self.get_estado(pos) != self.turno():
                     continue
                 for direcao in self.direcoes_possiveis:
-                    if self.calcular_pos(pos, direcao) is not None:
-                        lista_jogadas.append(JogadaAbalone(pos, direcao))
+                    jogo_copy = deepcopy(self)
+                    resultado_movimento = jogo_copy.movimentar_peca(pos, direcao)
+                    if self.calcular_pos(pos, direcao) is not None and resultado_movimento != 1:
+                        lista_jogadas.append(JogadaAbalone(pos, direcao, self.turno()))
         return lista_jogadas
 
     def venceu(self):
@@ -372,6 +383,51 @@ class JogoAbalone(Jogo):
         utilidade_media = util_total / num_pecas_jogador
 
         return utilidade_media + (2 * pecas_empurraveis) - (1.5 * pecas_em_risco) #Cada peça que pode empurrar ganha um bônus de +2 e cada peça que pode ser empurrada sobre uma penalização de -1.5
+
+    # def calcular_utilidade(self, jogador):
+    #     # Valor padrão da primeira jogada
+    #     if self.ultima_jogada is None:
+    #         return 0.5
+    #
+    #
+    #     pecas_direcoes = dict()
+    #     ultima_jogada_prox_pos = self.calcular_pos(self.ultima_jogada.posicao, self.ultima_jogada.direcao)
+    #     pos_valor = self.get_estado(ultima_jogada_prox_pos)
+    #     # Armazena os valores de cada direção
+    #
+    #     for direcao in self.direcoes_possiveis:
+    #         pecas_direcoes[direcao] = list()
+    #         proximo_valor = -1
+    #         proxima_pos = ultima_jogada_prox_pos
+    #         # Itera nas casas até achar 0 ou até a borda
+    #         while proximo_valor != 0 and proximo_valor != None:
+    #             proxima_pos = self.calcular_pos(proxima_pos, direcao)
+    #             proximo_valor = self.get_estado(proxima_pos)
+    #             if proximo_valor is not None:
+    #                 pecas_direcoes[direcao].append(proximo_valor)
+    #
+    #     # Valida se pode ser empurrado em qualquer direção
+    #     # Se em qualquer direção pode ser empurrado, retorna 1.
+    #     # Se em qualquer direção pode empurrar, retorna 0
+    #     for direcao in self.direcoes_possiveis:
+    #         lista_valores = pecas_direcoes[direcao]
+    #
+    #         # Se tiver 0, pula, pois não pode empurrar ou ser empurrado
+    #         if 0 in lista_valores:
+    #             continue
+    #
+    #         if self.quem_pode_empurrar([pos_valor, *lista_valores]) == jogador:
+    #             return float("-inf")
+    #         else:
+    #             return float("+inf")
+    #
+    #     # Caso não possa empurrar ou ser empurrado, calcula o coef_utilidade até o centro
+    #     posicoes_ao_redor = [self.calcular_pos(ultima_jogada_prox_pos, x) for x in self.direcoes_possiveis]
+    #     posicoes_ao_redor_valores = [self.get_estado(pos) for pos in posicoes_ao_redor]
+    #     qtd_pecas_ao_redor = len([x for x in posicoes_ao_redor_valores if x != 0])
+    #     distancia_centro = self.calc_distancia_centro(ultima_jogada_prox_pos)
+    #     coef_utilidade = qtd_pecas_ao_redor/(distancia_centro+1)
+    #     return coef_utilidade
 
     def imprimir_jogada(self, jogador, jogada: JogadaAbalone):
         print(f"Jogador {jogador.identificador} moveu a peça {jogada.posicao} na direção {jogada.direcao}")
