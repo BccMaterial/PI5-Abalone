@@ -35,25 +35,3 @@ def minimax_alfabeta(jogo, turno_max: bool, jogador, profundidade_maxima = 8, al
       if beta <= alfa:
         continue
       return beta
-
-# Encotrar o melhor movimento do computador
-def melhor_jogada_agente(jogo, profundidade_maxima = 8):
-  melhor_valor = float("-inf")
-  melhor_jogada = -1
-  for proxima_jogada in jogo.jogadas_validas():
-    utilidade = minimax(jogo.jogar(proxima_jogada), False, jogo.turno(), profundidade_maxima)
-    if utilidade > melhor_valor:
-      melhor_valor = utilidade
-      melhor_jogada = proxima_jogada
-  return melhor_jogada
-
-def melhor_jogada_agente_poda(jogo, profundidade_maxima = 8):
-  melhor_valor = float("-inf")
-  melhor_jogada = -1
-  for proxima_jogada in jogo.jogadas_validas():
-    utilidade = minimax_alfabeta(jogo.jogar(proxima_jogada), False, jogo.turno(), profundidade_maxima)
-    if utilidade > melhor_valor:
-      melhor_valor = utilidade
-      melhor_jogada = proxima_jogada
-  return melhor_jogada
-

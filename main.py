@@ -24,15 +24,16 @@ if __name__ == "__main__":
         jogo.imprimir()
         print("==================================================")
 
-        print(f"Jogador {jogador_agente.imprimir()} está pensando...")
-        time.sleep(1.5)
+        if jogador_agente is JogadorAbaloneAgente:
+            print(f"Jogador {jogador_agente.imprimir()} está pensando...")
+            time.sleep(1.5)
 
         jogada_agente = jogador_agente.jogar(jogo)
-        print(jogo.imprimir_jogada(jogador_agente, jogada_agente))
+        jogo.imprimir_jogada(jogador_agente, jogada_agente)
         print("==================================================")
         jogo = jogo.jogar(jogada_agente)
 
         if jogo.venceu():
-            print(f"{jogador_humano.imprimir()} venceu!")
+            print(f"{jogador_agente.imprimir()} venceu!")
             break
 
