@@ -3,8 +3,8 @@ from classes.abalone.jogo import JogoAbalone
 from classes.abalone.jogador import JogadorAbaloneHumano, JogadorAbaloneAgente
 
 if __name__ == "__main__":
-    jogador_humano = JogadorAbaloneHumano(2)
-    jogador_agente = JogadorAbaloneAgente(1)
+    jogador_humano = JogadorAbaloneHumano(1)
+    jogador_agente = JogadorAbaloneAgente(2)
     jogo = JogoAbalone(turno=jogador_humano.identificador)
 
     print("Situação do jogo:")
@@ -24,7 +24,7 @@ if __name__ == "__main__":
         jogo.imprimir()
         print("==================================================")
 
-        if jogador_agente is JogadorAbaloneAgente:
+        if isinstance(jogador_agente, JogadorAbaloneAgente):
             print(f"Jogador {jogador_agente.imprimir()} está pensando...")
             time.sleep(1.5)
 

@@ -280,99 +280,53 @@ class JogoAbalone(Jogo):
         1 -> jogador 1 pode empurrar
         2 -> jogador 2 pode empurrar
         """
-        qtd_pecas_j1 = len([x for x in valores if x == 1])
-        qtd_pecas_j2 = len([x for x in valores if x == 2])
-        
-        if qtd_pecas_j1 == qtd_pecas_j2 or 0 in valores:
+        j1_primeiro_indice = valores.index(1) if 1 in valores else None
+        j2_primeiro_indice = valores.index(2) if 2 in valores else None
+
+
+        if j1_primeiro_indice is None or j2_primeiro_indice is None:
             return 0
 
-        if qtd_pecas_j1 == 0 or qtd_pecas_j2 == 2:
-            return 0
+        j1_pecas_seguidas = 0
+        for i in range(j1_primeiro_indice, len(valores)):
+            if valores[i] != 1:
+                break
+            j1_pecas_seguidas += 1
 
-        qtd_pecas_j1_primeiro_indice = valores.index(1)
-        qtd_pecas_j2_primeiro_indice = valores.index(2)
-        
-        if qtd_pecas_j1 > qtd_pecas_j2 and qtd_pecas_j1_primeiro_indice < qtd_pecas_j2_primeiro_indice:
+        j2_pecas_seguidas = 0
+        for i in range(j2_primeiro_indice, len(valores)):
+            if valores[i] != 2:
+                break
+            j2_pecas_seguidas += 1
+
+        if j1_primeiro_indice < j2_primeiro_indice and j1_pecas_seguidas > j2_pecas_seguidas:
             return 1
         else:
             return 2
 
     def calcular_utilidade(self, jogador):
-        # Constantes de peso para cada fator
-        PESO_CENTRO = 3.0
-        PESO_AGRUPAMENTO = 1.5
-        PESO_EMPURRAR = 2.0
-        PESO_RISCO = 0.1
-        PESO_PECAS = 1.0
+        qtd_pecas = 0
+        total_pecas = 0
+        tabuleiro = self.estado
+        x_c, y_c = 4, 4
+        total_coef_centro = 0
+        for x in range(len(tabuleiro)):
+            for y in range(len(tabuleiro[x])):
+                peca = tabuleiro[x][y]
+                total_pecas += 1 if peca != 0 else 0
+                if peca == jogador:
+                    qtd_pecas += 1
+                    peca_distancia_centro = abs(x - x_c) + abs(y - y_c)
+                    coef_centro = 1 / max(1, peca_distancia_centro)
+                    total_coef_centro += coef_centro
         
-        util_total = 0
-        num_pecas_jogador = 0
-        num_pecas_oponente = 0
-        pecas_empurraveis = 0
-        pecas_em_risco = 0
-        
-        centro = (4, 4)  # Posição central
-        
-        for i in range(len(self.estado)):
-            for j in range(len(self.estado[i])):
-                pos = (i, j)
-                if self.get_estado(pos) == 3 - jogador:
-                    num_pecas_oponente += 1
-                    continue
-                if self.get_estado(pos) != jogador:
-                    continue
-                    
-                num_pecas_jogador += 1
-                
-                # 1. Avaliação de empurrão/risco
-                pode_empurrar = False
-                em_risco = False
-                
-                for direcao in self.direcoes_possiveis:
-                    linha = self.verificar_linha(pos, direcao)
-                    if not linha:
-                        continue
-                        
-                    if self.quem_pode_empurrar([self.get_estado(pos)] + linha) == jogador:
-                        pode_empurrar = True
-                    elif self.quem_pode_empurrar([self.get_estado(pos)] + linha) == 3 - jogador:
-                        em_risco = True
-                
-                if pode_empurrar:
-                    pecas_empurraveis += 1
-                if em_risco:
-                    pecas_em_risco += 1
-                
-                # 2. Distância ao centro (usando distância de Manhattan)
-                distancia_centro = abs(pos[0] - centro[0]) + abs(pos[1] - centro[1])
-                valor_centro = 1 / (1 + distancia_centro)  # Valor entre 0 e 1
-                
-                # 3. Avaliação de agrupamento
-                vizinhos_aliados = 0
-                for direcao in self.direcoes_possiveis:
-                    vizinho = self.calcular_pos(pos, direcao)
-                    if vizinho and self.get_estado(vizinho) == jogador:
-                        vizinhos_aliados += 1
-                
-                # 4. Contribuição para a utilidade total
-                # if not (pode_empurrar or em_risco):  # Só considera se não estiver em situação crítica
-                util_total += (valor_centro * PESO_CENTRO + 
-                              (vizinhos_aliados/6) * PESO_AGRUPAMENTO)
-        
-        # Fatores globais
-        diferenca_pecas = (14 - num_pecas_jogador) - (14 - (sum(sum(1 for x in linha if x == (3 - jogador)) for linha in self.estado)))
-
-        # Utilidade final combinando todos os fatores
-        utilidade = (
-            (util_total / max(1, num_pecas_jogador)) +  # Média da utilidade posicional
-            pecas_empurraveis * PESO_EMPURRAR +
-            pecas_em_risco * PESO_RISCO +
-            diferenca_pecas * PESO_PECAS
-        )
+        utilidade = total_coef_centro + (qtd_pecas/total_pecas)
         return utilidade
-
+    
     def verificar_linha(self, pos, direcao):
-        """Retorna os valores na direção especificada até encontrar um 0 ou None"""
+        """
+            Retorna os valores na direção especificada até encontrar um 0 ou None
+        """
         valores = []
         prox_pos = self.calcular_pos(pos, direcao)
         
@@ -381,68 +335,6 @@ class JogoAbalone(Jogo):
             prox_pos = self.calcular_pos(prox_pos, direcao)
         
         return valores
-
-    # def pos_utilidade(self, pos: tuple):
-    #     pecas_direcoes = dict()
-    #     pos_valor = self.get_estado(pos)
-    #     # Armazena os valores de cada direção
-    #
-    #     for direcao in self.direcoes_possiveis:
-    #         pecas_direcoes[direcao] = list()
-    #         proximo_valor = -1
-    #         proxima_pos = pos
-    #         # Itera nas casas até achar 0 ou até a borda
-    #         while proximo_valor != 0 and proximo_valor != None:
-    #             proxima_pos = self.calcular_pos(proxima_pos, direcao)
-    #             proximo_valor = self.get_estado(proxima_pos)
-    #             if proximo_valor is not None:
-    #                 pecas_direcoes[direcao].append(proximo_valor)
-    #
-    #     # Valida se pode ser empurrado em qualquer direção
-    #     # Se em qualquer direção pode ser empurrado, retorna 1.
-    #     # Se em qualquer direção pode empurrar, retorna 0
-    #     for direcao in self.direcoes_possiveis:
-    #         lista_valores = pecas_direcoes[direcao]
-    #
-    #         # Se tiver 0, pula, pois não pode empurrar ou ser empurrado
-    #         if 0 in lista_valores:
-    #             continue
-    #
-    #         if self.quem_pode_empurrar([pos_valor, *lista_valores]) == pos_valor:
-    #             return float("-inf")
-    #         else:
-    #             return float("+inf")
-    #
-    # def calcular_utilidade(self, jogador):
-    #     util_total = 0 #Soma das utilidades de todas as peças do jogador
-    #     num_pecas_jogador = 0
-    #     pecas_empurraveis = 0
-    #     pecas_em_risco = 0 #Quantidade de peças do jogador que podem ser empurradas
-    #
-    #     for i in range(len(self.estado)): #Linha
-    #         for j in range(len(self.estado[i])): #Coluna
-    #             posicao = (i, j)
-    #
-    #             if self.get_estado(posicao) != jogador: #Verifica se a peça não pertence ao jogador
-    #                 continue
-    #
-    #             val_utilidade = self.pos_utilidade(posicao)
-    #
-    #             if val_utilidade == float('inf'): #Se retorna inf, pode empurrar
-    #                 pecas_empurraveis += 1
-    #             elif val_utilidade == float('-inf'): #Se retorna inf, pode ser empurrada
-    #                 pecas_em_risco += 1
-    #             else: #Caso não possa empurrar ou ser empurrada, calcula a distância até o centro
-    #                 util_total += val_utilidade
-    #
-    #             num_pecas_jogador += 1
-    #
-    #     if num_pecas_jogador == 0:
-    #         return 0
-    #
-    #     utilidade_media = util_total / num_pecas_jogador
-    #
-    #     return utilidade_media + (2 * pecas_empurraveis) - (1.5 * pecas_em_risco) #Cada peça que pode empurrar ganha um bônus de +2 e cada peça que pode ser empurrada sobre uma penalização de -1.5
 
     def imprimir_jogada(self, jogador, jogada: JogadaAbalone):
         print(f"Jogador {jogador.identificador} moveu a peça {jogada.posicao} na direção {jogada.direcao}")
