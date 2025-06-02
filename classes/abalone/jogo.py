@@ -178,6 +178,8 @@ class JogoAbalone(Jogo):
             if diferenca_pecas <= 0 or pecas_seguidas_oposto >= 3:
                 return 1
             else:
+                if 0 not in [self.get_estado(pos) for pos in proximas_posicoes]:
+                    self.placar[self.turno()] += 1
                 # Caso contrário, empurramos movendo as posições de cada
                 # peça, e retirando a última
                 i = len(proximas_posicoes) - 1
@@ -188,7 +190,7 @@ class JogoAbalone(Jogo):
                     self.set_estado((i_prox_pos), self.get_estado(i_pos))
                     self.set_estado((i_pos), 0)
                     i -= 1
-                self.placar[self.turno()] += 1
+
 
         self.ultima_jogada = JogadaAbalone(pos_atual, direcao, self.get_estado(pos_atual))
         return 0
