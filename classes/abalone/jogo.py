@@ -307,9 +307,11 @@ class JogoAbalone(Jogo):
     def calcular_utilidade(self, jogador):
         PESO_CENTRO = 1.5
         PESO_ADJACENTE = 0.8
-        PESO_QTD_PECAS=3.0
+        PESO_QTD_PECAS=4.0
+        PESO_RISCO_ADV=4.0
         qtd_pecas = 0
         qtd_pecas_adv = 0
+        qtd_pecas_adv_risco = 0
         total_pecas = 0
         tabuleiro = self.estado
         x_c, y_c = 4, 4
@@ -330,9 +332,17 @@ class JogoAbalone(Jogo):
                     coef_centro = 1 / ((1 + peca_distancia_centro)**2)
                     total_coef_centro += coef_centro
                 elif peca == 3 - jogador:
-                     qtd_pecas_adv += 1
+                    qtd_pecas_adv += 1
+                    peca_distancia_centro = abs(x - x_c) + abs(y - y_c)
+                    if peca_distancia_centro >= 3:
+                        qtd_pecas_adv_risco += 1
         
-        utilidade = PESO_CENTRO*total_coef_centro + PESO_ADJACENTE*total_coef_adjacente + PESO_QTD_PECAS*(qtd_pecas - qtd_pecas_adv)
+        utilidade = (
+            PESO_CENTRO * total_coef_centro + 
+            PESO_ADJACENTE * total_coef_adjacente + 
+            PESO_QTD_PECAS * (qtd_pecas - qtd_pecas_adv) +
+            PESO_RISCO_ADV * qtd_pecas_adv_risco
+        )
         return utilidade
     
     def verificar_linha(self, pos, direcao):
