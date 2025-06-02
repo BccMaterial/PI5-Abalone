@@ -7,9 +7,12 @@ if __name__ == "__main__":
     jogador_agente = JogadorAbaloneAgente(2)
     jogo = JogoAbalone(turno=jogador_humano.identificador)
 
-    print("Situação do jogo:")
     while True:
         # Turno do jogador
+        if isinstance(jogador_humano, JogadorAbaloneAgente):
+            print(f"Jogador {jogador_humano.imprimir()} está pensando...")
+            time.sleep(1.5)
+
         jogada_humano = jogador_humano.jogar(jogo)
         print("==================================================")
         jogo.imprimir_jogada(jogador_humano, jogada_humano)
