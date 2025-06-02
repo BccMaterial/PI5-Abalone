@@ -272,38 +272,6 @@ class JogoAbalone(Jogo):
     def venceu(self):
         return self.placar[self.turno()] >= 6
 
-    def quem_pode_empurrar(self, valores):
-        """
-        Dado um array de valores de 1 e 2, verifica quem pode empurrar naquela situação
-
-        0 -> nenhuma peça pode ser empurrada
-        1 -> jogador 1 pode empurrar
-        2 -> jogador 2 pode empurrar
-        """
-        j1_primeiro_indice = valores.index(1) if 1 in valores else None
-        j2_primeiro_indice = valores.index(2) if 2 in valores else None
-
-
-        if j1_primeiro_indice is None or j2_primeiro_indice is None:
-            return 0
-
-        j1_pecas_seguidas = 0
-        for i in range(j1_primeiro_indice, len(valores)):
-            if valores[i] != 1:
-                break
-            j1_pecas_seguidas += 1
-
-        j2_pecas_seguidas = 0
-        for i in range(j2_primeiro_indice, len(valores)):
-            if valores[i] != 2:
-                break
-            j2_pecas_seguidas += 1
-
-        if j1_primeiro_indice < j2_primeiro_indice and j1_pecas_seguidas > j2_pecas_seguidas:
-            return 1
-        else:
-            return 2
-
     def calcular_utilidade(self, jogador):
         PESO_CENTRO = 1.5
         PESO_ADJACENTE = 0.8
@@ -344,19 +312,6 @@ class JogoAbalone(Jogo):
             PESO_RISCO_ADV * qtd_pecas_adv_risco
         )
         return utilidade
-    
-    def verificar_linha(self, pos, direcao):
-        """
-            Retorna os valores na direção especificada até encontrar um 0 ou None
-        """
-        valores = []
-        prox_pos = self.calcular_pos(pos, direcao)
-        
-        while prox_pos is not None and self.get_estado(prox_pos) != 0:
-            valores.append(self.get_estado(prox_pos))
-            prox_pos = self.calcular_pos(prox_pos, direcao)
-        
-        return valores
 
     def imprimir_jogada(self, jogador, jogada: JogadaAbalone):
         print(f"Jogador {jogador.identificador} moveu a peça {jogada.posicao} na direção {jogada.direcao}")
