@@ -1,15 +1,15 @@
 import math
-from copy import deepcopy
+from copy import deepcopy, copy
 from classes.abalone.jogada import JogadaAbalone
 from classes.base.jogo import Jogo
+import random
 
 class JogoAbalone(Jogo):
-    def __init__(self, estado = None, turno = 1, placar = None, turnos = 0):
+    def __init__(self, estado = None, turno = 1, placar = None):
         self.estado = estado
         self.placar = placar
-        self._turno = turno
-        self.turnos = turnos
         self.ultima_jogada = None
+        self._turno = turno
         self.direcoes_possiveis = ["e", "d", "ce", "cd", "be", "bd"]
 
         if estado is None:
@@ -28,7 +28,7 @@ class JogoAbalone(Jogo):
         return 3 - self._turno
 
     # 1 e 2 são utilizados para representar os espaços ocupados pelas peças 
-    # dos jogadores e None é utilizado para representar os espaços não ocupados
+    # dos jogadores e 0 é utilizado para representar os espaços não ocupados
     def criar_tabuleiro(self):
         """
             Baseado em relação a este tabuleiro: https://www.divertivida.com.br/abalone-classic
@@ -67,10 +67,10 @@ class JogoAbalone(Jogo):
         Retorna:
         - 1 se a posição for inválida
         - 0 se for válida
-        """        
+        """
         pos_atual = peca_pos
         pos_atual_valor = self.get_estado(pos_atual)
-        proximas_posicoes = []
+        proximas_posicoes = [pos_atual]
         proxima_pos = self.calcular_pos(pos_atual, direcao)
 
         if proxima_pos is None:
@@ -92,7 +92,6 @@ class JogoAbalone(Jogo):
 
             if it_proxima_pos is not None:
                 proximas_posicoes.append(it_proxima_pos)
-
         
         # Se todos são iguais, então é uma jogada inválida
         if all(self.get_estado(pos) == pos_atual_valor for pos in proximas_posicoes):
@@ -117,20 +116,24 @@ class JogoAbalone(Jogo):
         j2_primeiro_indice = proximas_posicoes_valores.index(2) if 2 in proximas_posicoes_valores else None
 
         # Contagem de peças seguidas
-        for posicao in proximas_posicoes:
-            if self.get_estado(posicao) != 1:
-                break
-            j1_pecas_seguidas += 1
+        if j1_primeiro_indice is not None:
+            for i in range(j1_primeiro_indice, len(proximas_posicoes)):
+                if self.get_estado(proximas_posicoes[i]) != 1:
+                    break
+                j1_pecas_seguidas += 1
 
-        for posicao in proximas_posicoes:
-            if self.get_estado(posicao) != 2:
-                break
-            j2_pecas_seguidas += 1
+        if j2_primeiro_indice is not None:
+            for i in range(j2_primeiro_indice, len(proximas_posicoes)):
+                if self.get_estado(proximas_posicoes[i]) != 2:
+                    break
+                j2_pecas_seguidas += 1
 
         # Não tem 1, basta só ver se dá pra empurrar os próximos números
         # O número de peças seguidas está como 1 e 2 por que a
         # primeira peça está sendo contada
-        if j1_primeiro_indice is None and j2_pecas_seguidas in [1, 2] and 0 in proximas_posicoes_valores and pos_atual_valor == 2:
+        if j1_primeiro_indice is None and j2_pecas_seguidas >= 1 and 0 in proximas_posicoes_valores and pos_atual_valor == 2:
+            if j2_pecas_seguidas > 3:
+                return 1
             # Move as peças encontradas
             i = j2_pecas_seguidas
             while i > j2_primeiro_indice:
@@ -139,16 +142,15 @@ class JogoAbalone(Jogo):
                 self.set_estado((i_prox_pos), self.get_estado(i_pos))
                 self.set_estado((i_pos), 0)
                 i -= 1
-            # Move a peça que foi selecionada
-            self.set_estado(proxima_pos, self.get_estado(pos_atual))
-            self.set_estado(pos_atual, 0)
             self.ultima_jogada = JogadaAbalone(pos_atual, direcao, self.get_estado(pos_atual))
             return 0
 
         # Não tem 2, basta só ver se dá pra empurrar os próximos números
         # O número de peças seguidas está como 1 e 2 por que a
         # primeira peça está sendo contada
-        if j2_primeiro_indice is None and j1_pecas_seguidas in [1, 2] and 0 in proximas_posicoes_valores and pos_atual_valor == 1:
+        if j2_primeiro_indice is None and j1_pecas_seguidas >= 1 and 0 in proximas_posicoes_valores and pos_atual_valor == 1:
+            if j1_pecas_seguidas > 3:
+                return 1
             # Move as peças encontradas
             i = j1_pecas_seguidas
             while i > j1_primeiro_indice:
@@ -158,37 +160,37 @@ class JogoAbalone(Jogo):
                 self.set_estado((i_pos), 0)
                 i -= 1
             # Move a peça que foi selecionada
-            self.set_estado(proxima_pos, self.get_estado(pos_atual))
-            self.set_estado(pos_atual, 0)
             self.ultima_jogada = JogadaAbalone(pos_atual, direcao, self.get_estado(pos_atual))
             return 0
 
         # Ação caso haja peças 1 e 2 na mesma direção
         if j2_primeiro_indice is not None and j1_primeiro_indice is not None:
-            # É adicionado +1 em j1 ou j2 dependendo do valor da posição atual
             diferenca_pecas = 0
+            pecas_seguidas_oposto = 0
             if pos_atual_valor == 1:
-                diferenca_pecas = (j1_pecas_seguidas + 1) - j2_pecas_seguidas
+                diferenca_pecas = j1_pecas_seguidas - j2_pecas_seguidas
+                pecas_seguidas_oposto = j2_pecas_seguidas
             elif pos_atual_valor == 2:
-                diferenca_pecas = (j2_pecas_seguidas + 1) - j1_pecas_seguidas
+                diferenca_pecas = j2_pecas_seguidas - j1_pecas_seguidas
+                pecas_seguidas_oposto = j1_pecas_seguidas
             
             # Se for 0 ou menor, não faz nada (Podemos considerar o movimento como inválido)
-            if diferenca_pecas <= 0 and abs(diferenca_pecas) >= 3:
+            if diferenca_pecas <= 0 or pecas_seguidas_oposto >= 3:
                 return 1
             else:
+                if 0 not in [self.get_estado(pos) for pos in proximas_posicoes]:
+                    self.placar[self.turno()] += 1
                 # Caso contrário, empurramos movendo as posições de cada
                 # peça, e retirando a última
                 i = len(proximas_posicoes) - 1
-                self.retirar_peca(proximas_posicoes[-1])
+                self.set_estado(proximas_posicoes[-1], 0)
                 while i > 0:
                     i_pos = proximas_posicoes[i-1]
                     i_prox_pos = proximas_posicoes[i]
                     self.set_estado((i_prox_pos), self.get_estado(i_pos))
                     self.set_estado((i_pos), 0)
                     i -= 1
-                self.set_estado(proxima_pos, self.get_estado(pos_atual))
-                self.set_estado(pos_atual, 0)
-                self.placar[self.turno()] += 1
+
 
         self.ultima_jogada = JogadaAbalone(pos_atual, direcao, self.get_estado(pos_atual))
         return 0
@@ -240,18 +242,6 @@ class JogoAbalone(Jogo):
 
         return proxima_pos
 
-    def retirar_peca(self, pos: tuple):
-        """
-        Summary
-            Dada uma posição, retira a peça
-        Returns
-            Retorna o valor que foi retirado
-        """
-        valor_retirado = self.get_estado(pos)
-        self.set_estado(pos, 0)
-        return valor_retirado
-
-
     def set_estado(self, pos: tuple, valor: int):
         linha, coluna = pos
         self.estado[linha][coluna] = valor
@@ -265,7 +255,7 @@ class JogoAbalone(Jogo):
     def jogar(self, jogada: JogadaAbalone):
         temp = deepcopy(self)
         temp.movimentar_peca(jogada.posicao, jogada.direcao)
-        return JogoAbalone(temp.estado, temp.proximo_turno(), temp.placar, temp.turnos + 1)
+        return JogoAbalone(temp.estado, temp.proximo_turno(), temp.placar)
 
     def jogadas_validas(self):
         lista_jogadas = []
@@ -284,150 +274,46 @@ class JogoAbalone(Jogo):
     def venceu(self):
         return self.placar[self.turno()] >= 6
 
-    def pos_utilidade(self, pos: tuple):
-        pecas_direcoes = dict()
-        pos_valor = self.get_estado(pos)
-        # Armazena os valores de cada direção
-
-        for direcao in self.direcoes_possiveis:
-            pecas_direcoes[direcao] = list()
-            proximo_valor = -1
-            proxima_pos = pos
-            # Itera nas casas até achar 0 ou até a borda
-            while proximo_valor != 0 and proximo_valor != None:
-                proxima_pos = self.calcular_pos(proxima_pos, direcao)
-                proximo_valor = self.get_estado(proxima_pos)
-                if proximo_valor is not None:
-                    pecas_direcoes[direcao].append(proximo_valor)
-
-        # Valida se pode ser empurrado em qualquer direção
-        # Se em qualquer direção pode ser empurrado, retorna 1.
-        # Se em qualquer direção pode empurrar, retorna 0
-        for direcao in self.direcoes_possiveis:
-            lista_valores = pecas_direcoes[direcao]
-
-            # Se tiver 0, pula, pois não pode empurrar ou ser empurrado
-            if 0 in lista_valores:
-                continue
-
-            if self.quem_pode_empurrar([pos_valor, *lista_valores]) == pos_valor:
-                return float("-inf")
-            else:
-                return float("+inf")
-
-        # Caso não possa empurrar ou ser empurrado, calcula o coef_utilidade até o centro
-        posicoes_ao_redor = [self.calcular_pos(pos, x) for x in self.direcoes_possiveis]
-        posicoes_ao_redor_valores = [self.get_estado(pos) for pos in posicoes_ao_redor]
-        qtd_pecas_ao_redor = len([x for x in posicoes_ao_redor_valores if x != 0])
-        distancia_centro = self.calc_distancia_centro(pos)
-        coef_utilidade = qtd_pecas_ao_redor/(distancia_centro+1)
-        return coef_utilidade
-
-    def calc_distancia_centro(self, pos: tuple):
-        x, y = pos
-        c_x, c_y = (4, 4)
-        return abs(math.pow((x - c_x), 2) + math.pow((y - c_y), 2))
-
-    def quem_pode_empurrar(self, valores):
-        """
-        Dado um array de valores de 1 e 2, verifica quem pode empurrar naquela situação
-
-        0 -> nenhuma peça pode ser empurrada
-        1 -> jogador 1 pode empurrar
-        2 -> jogador 2 pode empurrar
-        """
-        qtd_pecas_j1 = len([x for x in valores if x == 1])
-        qtd_pecas_j2 = len([x for x in valores if x == 2])
-        
-        if qtd_pecas_j1 == qtd_pecas_j2 or 0 in valores:
-            return 0
-
-        if qtd_pecas_j1 == 0 or qtd_pecas_j2 == 2:
-            return 0
-
-        qtd_pecas_j1_primeiro_indice = valores.index(1)
-        qtd_pecas_j2_primeiro_indice = valores.index(2)
-        
-        if qtd_pecas_j1 > qtd_pecas_j2 and qtd_pecas_j1_primeiro_indice < qtd_pecas_j2_primeiro_indice:
-            return 1
-        else:
-            return 2
-
     def calcular_utilidade(self, jogador):
-        util_total = 0 #Soma das utilidades de todas as peças do jogador
-        num_pecas_jogador = 0
-        pecas_empurraveis = 0
-        pecas_em_risco = 0 #Quantidade de peças do jogador que podem ser empurradas
-
-        for i in range(len(self.estado)): #Linha
-            for j in range(len(self.estado[i])): #Coluna
-                posicao = (i, j)
-
-                if self.get_estado(posicao) != jogador: #Verifica se a peça não pertence ao jogador
-                    continue
-
-                val_utilidade = self.pos_utilidade(posicao)
-
-                if val_utilidade == float('inf'): #Se retorna inf, pode empurrar
-                    pecas_empurraveis += 1
-                elif val_utilidade == float('-inf'): #Se retorna inf, pode ser empurrada
-                    pecas_em_risco += 1
-                else: #Caso não possa empurrar ou ser empurrada, calcula a distância até o centro
-                    util_total += val_utilidade
-
-                num_pecas_jogador += 1
-
-        if num_pecas_jogador == 0:
-            return 0
-
-        utilidade_media = util_total / num_pecas_jogador
-
-        return utilidade_media + (2 * pecas_empurraveis) - (1.5 * pecas_em_risco) #Cada peça que pode empurrar ganha um bônus de +2 e cada peça que pode ser empurrada sobre uma penalização de -1.5
-
-    # def calcular_utilidade(self, jogador):
-    #     # Valor padrão da primeira jogada
-    #     if self.ultima_jogada is None:
-    #         return 0.5
-    #
-    #
-    #     pecas_direcoes = dict()
-    #     ultima_jogada_prox_pos = self.calcular_pos(self.ultima_jogada.posicao, self.ultima_jogada.direcao)
-    #     pos_valor = self.get_estado(ultima_jogada_prox_pos)
-    #     # Armazena os valores de cada direção
-    #
-    #     for direcao in self.direcoes_possiveis:
-    #         pecas_direcoes[direcao] = list()
-    #         proximo_valor = -1
-    #         proxima_pos = ultima_jogada_prox_pos
-    #         # Itera nas casas até achar 0 ou até a borda
-    #         while proximo_valor != 0 and proximo_valor != None:
-    #             proxima_pos = self.calcular_pos(proxima_pos, direcao)
-    #             proximo_valor = self.get_estado(proxima_pos)
-    #             if proximo_valor is not None:
-    #                 pecas_direcoes[direcao].append(proximo_valor)
-    #
-    #     # Valida se pode ser empurrado em qualquer direção
-    #     # Se em qualquer direção pode ser empurrado, retorna 1.
-    #     # Se em qualquer direção pode empurrar, retorna 0
-    #     for direcao in self.direcoes_possiveis:
-    #         lista_valores = pecas_direcoes[direcao]
-    #
-    #         # Se tiver 0, pula, pois não pode empurrar ou ser empurrado
-    #         if 0 in lista_valores:
-    #             continue
-    #
-    #         if self.quem_pode_empurrar([pos_valor, *lista_valores]) == jogador:
-    #             return float("-inf")
-    #         else:
-    #             return float("+inf")
-    #
-    #     # Caso não possa empurrar ou ser empurrado, calcula o coef_utilidade até o centro
-    #     posicoes_ao_redor = [self.calcular_pos(ultima_jogada_prox_pos, x) for x in self.direcoes_possiveis]
-    #     posicoes_ao_redor_valores = [self.get_estado(pos) for pos in posicoes_ao_redor]
-    #     qtd_pecas_ao_redor = len([x for x in posicoes_ao_redor_valores if x != 0])
-    #     distancia_centro = self.calc_distancia_centro(ultima_jogada_prox_pos)
-    #     coef_utilidade = qtd_pecas_ao_redor/(distancia_centro+1)
-    #     return coef_utilidade
+        PESO_CENTRO = 1.5
+        PESO_ADJACENTE = 0.8
+        PESO_QTD_PECAS=4.0
+        PESO_RISCO_ADV=4.0
+        qtd_pecas = 0
+        qtd_pecas_adv = 0
+        qtd_pecas_adv_risco = 0
+        total_pecas = 0
+        tabuleiro = self.estado
+        x_c, y_c = 4, 4
+        total_coef_centro = 0
+        total_coef_adjacente = 0
+        for x in range(len(tabuleiro)):
+            for y in range(len(tabuleiro[x])):
+                peca = tabuleiro[x][y]
+                total_pecas += 1 if peca != 0 else 0
+                for direcao in self.direcoes_possiveis:
+                    dir_pos = self.calcular_pos((x, y), direcao)
+                    valor_peca = self.get_estado(dir_pos)
+                    if valor_peca == jogador:
+                        total_coef_adjacente += 1
+                if peca == jogador:
+                    qtd_pecas += 1
+                    peca_distancia_centro = abs(x - x_c) + abs(y - y_c)
+                    coef_centro = 1 / ((1 + peca_distancia_centro)**2)
+                    total_coef_centro += coef_centro
+                elif peca == 3 - jogador:
+                    qtd_pecas_adv += 1
+                    peca_distancia_centro = abs(x - x_c) + abs(y - y_c)
+                    if peca_distancia_centro >= 3:
+                        qtd_pecas_adv_risco += 1
+        
+        utilidade = (
+            PESO_CENTRO * total_coef_centro + 
+            PESO_ADJACENTE * total_coef_adjacente + 
+            PESO_QTD_PECAS * (qtd_pecas - qtd_pecas_adv) +
+            PESO_RISCO_ADV * qtd_pecas_adv_risco
+        )
+        return utilidade
 
     def imprimir_jogada(self, jogador, jogada: JogadaAbalone):
         print(f"Jogador {jogador.identificador} moveu a peça {jogada.posicao} na direção {jogada.direcao}")
@@ -443,4 +329,7 @@ class JogoAbalone(Jogo):
             str_final += "".join(" " for _ in range(quantidade_espaços))
             str_final += " ".join([str(i) for i in linha])
             str_final += "\n"
+        str_final += "\nPlacar:\n"
+        str_final += f"Jogador 1: {self.placar[1]}\n"
+        str_final += f"Jogador 2: {self.placar[2]}\n"
         print(str_final)

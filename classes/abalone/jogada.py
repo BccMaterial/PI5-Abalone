@@ -11,6 +11,13 @@ class JogadaAbalone(Jogada):
         # print(f"resultado calcular_pos: {jogo.calcular_pos(self.posicao, self.direcao)}")
         # print(f"resultado get_estado: {jogo.get_estado(self.posicao)}")
         # print(f"direcao: {self.direcao}")
+
+        if self.posicao[0] >= len(jogo.estado):
+            return False
+
+        if self.posicao[1] >= len(jogo.estado[self.posicao[0]]):
+            return False
+
         jogo_copy = deepcopy(jogo)
         movimento_resultado = jogo_copy.movimentar_peca(self.posicao, self.direcao)
         return \
@@ -18,3 +25,6 @@ class JogadaAbalone(Jogada):
             jogo.get_estado(self.posicao) == jogo.turno() and \
             self.direcao in jogo.direcoes_possiveis and \
             movimento_resultado != 1
+
+    def imprimir_jogada(self):
+        print(f"Jogador {self.jogador} moveu a peça {self.posicao} na direção {self.direcao}")

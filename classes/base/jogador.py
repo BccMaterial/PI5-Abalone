@@ -1,4 +1,4 @@
-from classes.minimax import minimax_alfabeta
+from classes.minimax import minimax_alfabeta, minimax
 
 class Jogador:
     def __init__(self, identificador, min_max = None):
@@ -32,10 +32,9 @@ class JogadorAgente(Jogador):
         super().__init__(identificador, "max")
 
     def jogar(self, jogo):
-        profundidade_maxima = 8
+        profundidade_maxima = 2
         melhor_valor = float("-inf")
         melhor_jogada = -1
-        # print(jogo.turno().imprimir())
         for proxima_jogada in jogo.jogadas_validas():
             utilidade = minimax_alfabeta(jogo.jogar(proxima_jogada), jogo.turno(), profundidade_maxima)
             if utilidade > melhor_valor:

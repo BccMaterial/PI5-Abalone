@@ -25,6 +25,14 @@ class JogadorAbaloneHumano(JogadorHumano):
             pos_inserida = tuple([int(x) for x in re.split(r",\s?", ultimo_input)])
             jogada.posicao = pos_inserida
 
+            if pos_inserida[0] >= len(jogo.estado):
+                print("Jogada inválida! Selecione uma posição dentro do tabuleiro.")
+                continue
+
+            if pos_inserida[1] >= len(jogo.estado[pos_inserida[0]]):
+                print("Jogada inválida! Selecione uma posição dentro do tabuleiro.")
+                continue
+
             if jogo.get_estado(pos_inserida) != jogo.turno():
                 print("A peça selecionada é do outro jogador! Por favor, selecione outra.")
                 continue
