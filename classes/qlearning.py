@@ -1,87 +1,103 @@
-import numpy as np
 import random
+import pickle
+from collections import defaultdict
+from classes.base.jogador import Jogador
+from classes.minimax import minimax_alfabeta
+from classes.abalone.jogo import JogoAbalone
+import os
 
-# Now we can define the MDP as a tuple (S, A, T, R, 𝛾).
-  # Here, R(s, a) is the reward for taking action a in state s, P(s'|s, a) is the transition probability of reaching state s' given state s and action a, and 𝛾 is the discount factor.
-class Qlearning:
-  def __init__(
-    self,
-    problema,
-    desconto = 0.90,
-    tetha = 1e-6,
-    alpha = 0.1
-  ):
-    self.problema = problema
-    self.n_estados = len(problema.estados)
-    self.n_acoes = len(problema.acoes)
-    self.theta = tetha
-    self.alpha = alpha
-    self.desconto = desconto
-    self.e = 0.4
-    
-    self.Q = np.zeros((self.n_estados, self.n_acoes))
-    self.PI = np.zeros(self.n_estados, dtype=int) 
+class JogadorQLearning(Jogador):
+    def __init__(self, identificador, alpha=0.1, gamma=0.9, epsilon=0.2):
+        super().__init__(identificador, "max")
+        self.q_table = defaultdict(float)
+        self.alpha = alpha
+        self.gamma = gamma
+        self.epsilon = epsilon
 
-  def calcular_tabela_q(self, estado_inicial = 0, n_passos = 10000, limite_max = 10):
-    passo = 0
-    
-    while passo < n_passos:
-      if (passo % 10000 == 0): print("%s passos de %s" %(passo, n_passos))
-      passo += 1
-      estado = estado_inicial # estado inicial
-      limite = 0
-      while self.problema.estado_final(estado) == False and limite < limite_max:
-        limite += 1
-        # escolha da acao
-        # random ou melhor da política baseado em uma taxa
-        acao = self.sorteia_proxima_acao(estado)
-        
-        q_antigo = self.Q[estado][acao]
-        q_seguinte = 0
-        
-        # Atualização da Q Table
-        # Q(s,a) <= α(*Q(s,a) + (1-α)*Σ(s')( T(s, a, s') * [ R(s,a,s') +  𝛾 max(a) Q(s',a') ] )
-        # Q(s,a) <= α(*Q(s,a) + (1-α)*amostra)
-        
-        # amostra = Σ(s') T(s, a, s') * [ R(s,a,s') +  𝛾 max(a) Q(s',a')
-        for proximo_estado, probabilidade in self.problema.T(estado, acao):
-          q_seguinte += self.novo_q(estado, acao, proximo_estado, probabilidade)
-        # aqui acontece a atualização do Q(s,a)
-        self.Q[estado][acao] = self.alpha * q_antigo + (1 - self.alpha) * q_seguinte
-  
-        # Iteração por política 
-        # pega melhor ação para o estado S
-        self.PI[estado] = np.argmax(self.Q[estado])
-        
-        # escolhe o proximo estado probabilisticamente
-        estado = self.sorteia_proximo_estado(estado, acao)
+    def hash_estado(self, jogo):
+        # Hash simples: transforme o estado do tabuleiro em string
+        return str(jogo.estado)
 
-    return self.Q, self.PI
+    def escolher_acao(self, jogo):
+        estado = self.hash_estado(jogo)
+        jogadas = jogo.jogadas_validas()
+        if not jogadas:
+            return None
+        # Epsilon-greedy
+        if random.random() < self.epsilon:
+            return random.choice(jogadas)
+        qs = [self.q_table[(estado, str(jogada))] for jogada in jogadas]
+        max_q = max(qs)
+        melhores = [j for j, q in zip(jogadas, qs) if q == max_q]
+        return random.choice(melhores)
 
-  def novo_q(self, estado, acao, proximo_estado, probabilidade):
-    print(self.n_acoes)
-    print(self.Q)
-    print(proximo_estado)
-    max_a = np.max(self.Q[proximo_estado]) # max(a) Q(s',a')
-    return probabilidade * (self.problema.R(estado, acao, proximo_estado) + self.desconto * max_a)
-  
-  # escolha da acao
-  # random ou melhor da política baseado em uma taxa
-  def sorteia_proxima_acao(self, estado):
-    acao_random = random.randrange(self.n_acoes)
-    acao_politica = self.PI[estado]
-    return random.choices([acao_random, acao_politica], weights = [self.e, (1-self.e)])[0]
+    def jogar(self, jogo):
+        # Para compatibilidade com a interface Jogador
+        return self.escolher_acao(jogo)
 
-  # dado um estado e ação
-  # sorteia o próximo estado baseado 
-  # nas suas probabilidades de T(s,a, s')
-  def sorteia_proximo_estado(self, estado, acao):
-    prox_estados = self.problema.T(estado, acao)
-    
-    estados = []
-    probs = []
-    for (prox_estado, prob) in prox_estados:
-      estados.append(prox_estado)
-      probs.append(prob)
-    #https://acervolima.com/metodo-random-choices-em-python/
-    return random.choices(estados, weights=probs)[0]
+    def atualizar_q(self, estado, acao, recompensa, proximo_estado, proxima_acao):
+        chave = (estado, str(acao))
+        proxima_chave = (proximo_estado, str(proxima_acao))
+        q_atual = self.q_table[chave]
+        q_proximo = self.q_table[proxima_chave]
+        self.q_table[chave] = q_atual + self.alpha * (recompensa + self.gamma * q_proximo - q_atual)
+
+    def salvar_qtable(self, caminho="qtable.pkl"):
+        with open(caminho, "wb") as f:
+            pickle.dump(dict(self.q_table), f)
+
+    def carregar_qtable(self, caminho="qtable.pkl"):
+        with open(caminho, "rb") as f:
+            self.q_table = defaultdict(float, pickle.load(f))
+
+
+def treinar_qlearning(num_episodios=100, salvar_cada=10):
+    q_agent = JogadorQLearning(1)
+    minimax_id = 2
+
+    for episodio in range(num_episodios):
+        jogo = JogoAbalone()
+        estado = q_agent.hash_estado(jogo)
+        acao = q_agent.escolher_acao(jogo)
+        while not jogo.venceu():
+            # Q-Learning joga
+            os.system("cls||clear")
+            print(f"Executando episódio {episodio} de {num_episodios}...")
+            print(jogo)
+            if acao is None:
+                break
+            jogo_q = jogo.jogar(acao)
+            recompensa = jogo_q.calcular_utilidade(q_agent.identificador)
+
+            # Minimax joga
+            jogadas_minimax = jogo_q.jogadas_validas()
+            if not jogadas_minimax:
+                break
+            melhor_jogada_minimax = None
+            melhor_valor = float("-inf")
+            for jogada in jogadas_minimax:
+                valor = minimax_alfabeta(jogo_q.jogar(jogada), True, minimax_id, profundidade_maxima=2)
+                if valor > melhor_valor:
+                    melhor_valor = valor
+                    melhor_jogada_minimax = jogada
+            jogo_minimax = jogo_q.jogar(melhor_jogada_minimax)
+
+            proximo_estado = q_agent.hash_estado(jogo_minimax)
+            proxima_acao = q_agent.escolher_acao(jogo_minimax)
+            q_agent.atualizar_q(estado, acao, recompensa, proximo_estado, proxima_acao)
+
+            # Avança para próximo estado
+            estado = proximo_estado
+            acao = proxima_acao
+            jogo = jogo_minimax
+        os.system("cls||clear")
+        print(f"Executado episódio {episodio+1} de {num_episodios}...")
+        print(jogo)
+        if (episodio+1) % salvar_cada == 0:
+            print(f"Episódio {episodio+1} concluído.")
+            q_agent.salvar_qtable("qtable.pkl")
+    q_agent.salvar_qtable("qtable_final.pkl")
+    print("Treinamento concluído!")
+
+if __name__ == "__main__":
+    treinar_qlearning(num_episodios=50)

@@ -270,13 +270,13 @@ class JogoAbalone(Jogo):
         return lista_jogadas
 
     def venceu(self):
-        return self.placar[self.turno()] >= 6
+        return self.placar[3 - self.turno()] >= 6
 
     def calcular_utilidade(self, jogador):
-        PESO_CENTRO = 1.5
-        PESO_ADJACENTE = 0.8
-        PESO_QTD_PECAS=4.0
-        PESO_RISCO_ADV=4.0
+        PESO_CENTRO = 0.9
+        PESO_ADJACENTE = 0.6
+        PESO_QTD_PECAS=4.3
+        PESO_RISCO_ADV=4.1
         qtd_pecas = 0
         qtd_pecas_adv = 0
         qtd_pecas_adv_risco = 0
