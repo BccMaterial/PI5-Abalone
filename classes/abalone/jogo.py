@@ -1,8 +1,6 @@
-import math
-from copy import deepcopy, copy
+from copy import deepcopy
 from classes.abalone.jogada import JogadaAbalone
 from classes.base.jogo import Jogo
-import random
 
 class JogoAbalone(Jogo):
     def __init__(self, estado = None, turno = 1, placar = None):
@@ -274,11 +272,15 @@ class JogoAbalone(Jogo):
     def venceu(self):
         return self.placar[self.turno()] >= 6
 
+    def finalizou(self):
+        return self.placar[self.turno()] >= 6 or \
+               self.placar[3 - self.turno()] >= 6
+
     def calcular_utilidade(self, jogador):
-        PESO_CENTRO = 1.5
-        PESO_ADJACENTE = 0.8
-        PESO_QTD_PECAS=4.0
-        PESO_RISCO_ADV=4.0
+        PESO_CENTRO = 0.9
+        PESO_ADJACENTE = 0.6
+        PESO_QTD_PECAS=4.3
+        PESO_RISCO_ADV=4.1
         qtd_pecas = 0
         qtd_pecas_adv = 0
         qtd_pecas_adv_risco = 0
@@ -318,7 +320,7 @@ class JogoAbalone(Jogo):
     def imprimir_jogada(self, jogador, jogada: JogadaAbalone):
         print(f"Jogador {jogador.identificador} moveu a peça {jogada.posicao} na direção {jogada.direcao}")
 
-    def imprimir(self):
+    def __str__(self):
         tamanho_maximo = len(max(self.estado, key=len))
         str_final = ""
         str_final += f" \t{' '.join(str(i) for i in range(tamanho_maximo))}\n"
@@ -332,4 +334,7 @@ class JogoAbalone(Jogo):
         str_final += "\nPlacar:\n"
         str_final += f"Jogador 1: {self.placar[1]}\n"
         str_final += f"Jogador 2: {self.placar[2]}\n"
-        print(str_final)
+        return str_final
+
+    def imprimir(self):
+        print(str(self))
