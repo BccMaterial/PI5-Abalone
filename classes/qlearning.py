@@ -114,6 +114,14 @@ def treinar_qlearning(num_episodios=100, salvar_cada=10):
             print(f"Episódio {episodio+1} concluído.")
             q_agent.salvar_qtable("qtable.pkl")
     print("Treinamento concluído!")
+    print("Commitando qtable.pkl...")
+    commit_changes()
+
+def commit_changes():
+    os.system("git add qtable.pkl")
+    os.system("git status")
+    os.system("git commit -m 'Update Q-Learning table (AUTOMATED COMMIT)'")
+    os.system("git push")
 
 if __name__ == "__main__":
     treinar_qlearning(num_episodios=50)
