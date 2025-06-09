@@ -7,7 +7,7 @@ from classes.abalone.jogo import JogoAbalone
 import os
 
 class JogadorQLearning(Jogador):
-    def __init__(self, identificador, alpha=0.1, gamma=0.6, epsilon=0.3):
+    def __init__(self, identificador, alpha=0.3, gamma=0.85, epsilon=0.18):
         super().__init__(identificador, "max")
         self.q_table = defaultdict(float)
         self.alpha = alpha
@@ -74,11 +74,13 @@ def treinar_qlearning(num_episodios=100, salvar_cada=10):
             jogo_q = jogo.jogar(acao)
             recompensa = jogo_q.calcular_utilidade(q_agent.identificador)
 
-            if jogo.placar[q_agent.identificador] > placar_anterior[q_agent.identificador]:
+            if jogo_q.placar[q_agent.identificador] > placar_anterior[q_agent.identificador]:
                 recompensa += 100
 
-            if jogo.placar[minimax_id] > placar_anterior[minimax_id]:
-                recompensa -= 100
+            if jogo_q.placar[minimax_id] > placar_anterior[minimax_id]:
+                recompensa -= 150
+
+            print(f"Ultima recompensa: {recompensa}")
 
             # Minimax joga
             jogadas_minimax = jogo_q.jogadas_validas()
