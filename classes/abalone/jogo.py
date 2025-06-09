@@ -270,7 +270,11 @@ class JogoAbalone(Jogo):
         return lista_jogadas
 
     def venceu(self):
-        return self.placar[3 - self.turno()] >= 6
+        return self.placar[self.turno()] >= 6
+
+    def finalizou(self):
+        return self.placar[self.turno()] >= 6 or \
+               self.placar[3 - self.turno()] >= 6
 
     def calcular_utilidade(self, jogador):
         PESO_CENTRO = 0.9

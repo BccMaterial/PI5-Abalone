@@ -7,7 +7,7 @@ from classes.abalone.jogo import JogoAbalone
 import os
 
 class JogadorQLearning(Jogador):
-    def __init__(self, identificador, alpha=0.1, gamma=0.9, epsilon=0.2):
+    def __init__(self, identificador, alpha=0.1, gamma=0.6, epsilon=0.3):
         super().__init__(identificador, "max")
         self.q_table = defaultdict(float)
         self.alpha = alpha
@@ -54,20 +54,31 @@ class JogadorQLearning(Jogador):
 def treinar_qlearning(num_episodios=100, salvar_cada=10):
     q_agent = JogadorQLearning(1)
     minimax_id = 2
+    q_vitorias = 0
+    min_max_vitorias = 0
 
     for episodio in range(num_episodios):
         jogo = JogoAbalone()
         estado = q_agent.hash_estado(jogo)
         acao = q_agent.escolher_acao(jogo)
-        while not jogo.venceu():
+        while not jogo.finalizou():
             # Q-Learning joga
             os.system("cls||clear")
             print(f"Executando episódio {episodio} de {num_episodios}...")
             print(jogo)
+            print(f"Vitórias (Q-Learning): {q_vitorias} ({(q_vitorias/num_episodios)*100:.2f}%)")
+            print(f"Vitórias (MiniMax): {min_max_vitorias} ({(min_max_vitorias/num_episodios)*100:.2f}%)")
             if acao is None:
                 break
+            placar_anterior = jogo.placar
             jogo_q = jogo.jogar(acao)
             recompensa = jogo_q.calcular_utilidade(q_agent.identificador)
+
+            if jogo.placar[q_agent.identificador] > placar_anterior[q_agent.identificador]:
+                recompensa += 100
+
+            if jogo.placar[minimax_id] > placar_anterior[minimax_id]:
+                recompensa -= 100
 
             # Minimax joga
             jogadas_minimax = jogo_q.jogadas_validas()
@@ -90,13 +101,16 @@ def treinar_qlearning(num_episodios=100, salvar_cada=10):
             estado = proximo_estado
             acao = proxima_acao
             jogo = jogo_minimax
+        if jogo.placar[q_agent.identificador] >= 6:
+            q_vitorias += 1
+        if jogo.placar[minimax_id] >= 6:
+            min_max_vitorias += 1
         os.system("cls||clear")
         print(f"Executado episódio {episodio+1} de {num_episodios}...")
         print(jogo)
         if (episodio+1) % salvar_cada == 0:
             print(f"Episódio {episodio+1} concluído.")
             q_agent.salvar_qtable("qtable.pkl")
-    q_agent.salvar_qtable("qtable_final.pkl")
     print("Treinamento concluído!")
 
 if __name__ == "__main__":
