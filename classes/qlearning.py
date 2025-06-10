@@ -75,10 +75,16 @@ def treinar_qlearning(num_episodios=100, salvar_cada=10):
             recompensa = jogo_q.calcular_utilidade(q_agent.identificador)
 
             if jogo_q.placar[q_agent.identificador] > placar_anterior[q_agent.identificador]:
-                recompensa += 100
+                recompensa += 50
 
             if jogo_q.placar[minimax_id] > placar_anterior[minimax_id]:
-                recompensa -= 150
+                recompensa -= 50
+
+            if jogo.finalizou():
+                if jogo_q.placar[q_agent.identificador] > placar_anterior[q_agent.identificador]:
+                    recompensa += 100
+                if jogo_q.placar[minimax_id] > placar_anterior[minimax_id]:
+                    recompensa -= 100
 
             print(f"Ultima recompensa: {recompensa}")
 
