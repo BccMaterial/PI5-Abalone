@@ -9,7 +9,7 @@ import os
 class JogadorQLearning(Jogador):
     def __init__(self, identificador, alpha=0.3, gamma=0.85, epsilon=0.18):
         super().__init__(identificador, "max")
-        self.q_table = defaultdict(float)
+        self.carregar_qtable()
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
