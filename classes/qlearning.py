@@ -47,6 +47,10 @@ class JogadorQLearning(Jogador):
             pickle.dump(dict(self.q_table), f)
 
     def carregar_qtable(self, caminho="qtable.pkl"):
+        if not os.path.exists(caminho):
+            self.q_table = defaultdict(float)
+            return
+
         with open(caminho, "rb") as f:
             self.q_table = defaultdict(float, pickle.load(f))
 
