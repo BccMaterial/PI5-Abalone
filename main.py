@@ -166,27 +166,21 @@ if __name__ == "__main__":
 
         user_input = int(user_input_str)
 
-        if user_input < 1 or user_input > 5:
-            print("ERRO: Insira um valor válido!")
-            time.sleep(3)
-            continue
-
-        if user_input == 1:
-            jogador_vs_jogador()
-
-        if user_input == 2:
-            jogador_vs_minimax()
-
-        if user_input == 3:
-            jogador_vs_qlearning()
-        
-        if user_input == 4:
-            minimax_vs_qlearning()
-
-        if user_input == 5:
-            treinar_qlearning(num_episodios=5)
-
-
-        if user_input == 6:
-            break
+        match user_input:
+            case 1:
+                jogador_vs_jogador()
+            case 2:
+                jogador_vs_minimax()
+            case 3:
+                jogador_vs_qlearning()
+            case 4:
+                minimax_vs_qlearning()
+            case 5:
+                treinar_qlearning(num_episodios=1, salvar_cada=1)
+            case 6:
+                break
+            case _:
+                print("ERRO: Insira um valor válido!")
+                time.sleep(3)
+                continue
 
