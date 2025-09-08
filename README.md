@@ -4,7 +4,7 @@ Criação de algoritmos de Q-Learning e Minmax para jogar Abalone, além da inte
 
 ## Objetivo
 
-Empurrar 6 peças do oponente para fora do tabuleiro
+Empurrar 6 peças do oponente para fora do tabuleiro.
 
 ## Mecânicas
 
